@@ -1,0 +1,197 @@
+const { sql, poolPromise } = require('../../db/connection');
+
+const findByEmail = async (email) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('Email', sql.NVarChar, email)
+    .query('SELECT * FROM Users WHERE Email = @Email AND IsDeleted = 0');
+
+  return result.recordset[0];
+};
+
+
+
+
+const createUser = async (user) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('Name', sql.NVarChar, user.name)
+    .input('Email', sql.NVarChar, user.email)
+    .input('Password', sql.NVarChar, user.password)
+    .input('UserType', sql.NVarChar, 'User')
+    .input('Height', sql.Float, user.height || null)
+    .input('Weight', sql.Float, user.weight || null)
+    .input('Age', sql.Int, user.age || null)
+    .input('Gender', sql.NVarChar, user.gender || null)
+    .input('IsProfileComplete', sql.Bit, user.isProfileComplete)
+    .input('IsDeleted', sql.Bit, user.isDeleted)
+   .query(`
+  INSERT INTO Users 
+  (Name, Email, Password, UserType, Height, Weight, Age, Gender, IsProfileComplete,IsDeleted, CreatedAt, UpdatedAt)
+  OUTPUT inserted.*
+  VALUES 
+  (@Name, @Email, @Password, @UserType, @Height, @Weight, @Age, @Gender, @IsProfileComplete, @IsDeleted, GETDATE(), GETDATE())
+`);
+
+  return result.recordset[0];
+};
+
+
+
+
+const findByEmailExcludeUser  = async (email, userId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('Email', sql.NVarChar, email)
+    .input('UserId', sql.Int, userId)
+    .query(`
+      SELECT * FROM Users
+      WHERE Email = @Email AND Id <> @UserId
+    `);
+
+  return result.recordset[0];
+};
+
+
+
+
+const updateUser = async (userId, data) => {
+  const pool = await poolPromise;
+
+  // 🔴 check user exists + not deleted
+  const userCheck = await pool.request()
+    .input('UserId', sql.Int, userId)
+    .query('SELECT IsDeleted FROM Users WHERE Id = @UserId');
+
+  if (!userCheck.recordset[0]) {
+    throw new Error("User not found");
+  }
+
+  if (userCheck.recordset[0].IsDeleted) {
+    throw new Error("User account is deleted");
+  }
+
+  const request = pool.request()
+    .input('UserId', sql.Int, userId);
+
+  let updates = [];
+
+  if (data.name) {
+    request.input('Name', sql.NVarChar, data.name);
+    updates.push("Name = @Name");
+  }
+
+  if (data.email) {
+    request.input('Email', sql.NVarChar, data.email);
+    updates.push("Email = @Email");
+  }
+
+  if (data.age !== undefined) {
+    request.input('Age', sql.Int, data.age);
+    updates.push("Age = @Age");
+  }
+
+  if (data.gender) {
+    request.input('Gender', sql.NVarChar, data.gender);
+    updates.push("Gender = @Gender");
+  }
+
+  if (data.height !== undefined) {
+    request.input('Height', sql.Float, data.height);
+    updates.push("Height = @Height");
+  }
+
+  if (data.weight !== undefined) {
+    request.input('Weight', sql.Float, data.weight);
+    updates.push("Weight = @Weight");
+  }
+
+  request.input('IsProfileComplete', sql.Bit, data.isProfileComplete);
+  updates.push("IsProfileComplete = @IsProfileComplete");
+
+  // 🔴 safety check
+  if (updates.length === 0) {
+    throw new Error("No fields provided to update");
+  }
+
+  const query = `
+    UPDATE Users
+    SET ${updates.join(', ')}, UpdatedAt = GETDATE()
+    OUTPUT inserted.*
+    WHERE Id = @UserId
+  `;
+
+  const result = await request.query(query);
+
+  return result.recordset[0];
+};
+
+
+
+
+const getById = async (userId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('UserId', sql.Int, userId)
+    .query(`
+      SELECT Id, Name, Email, UserType, Age, Gender, Height, Weight, IsProfileComplete, CreatedAt, UpdatedAt
+      FROM Users
+      WHERE Id = @UserId
+    `);
+
+  return result.recordset[0];
+};
+
+
+
+const getDietByUserId = async (userId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('UserId', sql.Int, userId)
+    .query(`
+      SELECT GoalType, TargetWeight, BMR, MaintenanceCalories, TargetCalories, ActivityLevel, CreatedAt, UpdatedAt
+      FROM UserDietPlans
+      WHERE UserId = @UserId
+    `);
+
+  return result.recordset[0];
+};
+
+
+
+const deleteUser = async (userId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input('UserId', sql.Int, userId)
+    .query(`
+      UPDATE Users
+      SET IsDeleted = 1,
+          DeletedAt = GETDATE(),
+          UpdatedAt = GETDATE()
+      WHERE Id = @UserId AND IsDeleted = 0
+    `);
+
+  return result.rowsAffected[0]; // number of affected rows
+};
+
+
+
+
+
+
+
+module.exports = {
+  findByEmail,
+  createUser,
+  findByEmailExcludeUser,
+  getById,
+  getDietByUserId,
+  deleteUser,
+  updateUser
+};

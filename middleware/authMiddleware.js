@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = "YOUR_SECRET_KEY_HERE";
+const userRepository = require('../modules/user/userRepository');
+require('dotenv').config();
 
-const authMiddleware = (req, res, next) => {
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
 
@@ -17,10 +20,25 @@ const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, JWT_SECRET);
 
-    // ✅ attach user info to request
-    req.user = decoded;
+    // 🔥 DB check
+    const user = await userRepository.getById(decoded.id);
+
+    if (!user || user.IsDeleted) {
+      return res.status(401).json({
+        result: "error",
+        message: "Account is deactivated",
+        data: null
+      });
+    }
+
+    // ✅ Attach both JWT + DB user
+    req.user = {
+      ...decoded,
+      dbUser: user
+    };
 
     next();
+
   } catch (err) {
     return res.status(401).json({
       result: "error",
