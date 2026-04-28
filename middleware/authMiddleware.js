@@ -11,7 +11,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const authMiddleware = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers['authorization'];
 
-  console.log(" MIDDLEWARE START");
+  console.log(" user MIDDLEWARE START");
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     throw new AppError("Unauthorized: Token missing", 401);
