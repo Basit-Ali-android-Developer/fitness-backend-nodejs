@@ -1,51 +1,58 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 const userRepository = require('../modules/user/userRepository');
-require('dotenv').config();
+const AppError = require('../utils/AppError'); // adjust path
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const authMiddleware = async (req, res, next) => {
-  try {
-    const authHeader = req.headers['authorization'];
+const asyncHandler = require('../utils/asyncHandler');
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        result: "error",
-        message: "Unauthorized: Token missing",
-        data: null
-      });
-    }
+const authMiddleware = asyncHandler(async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
 
-    const token = authHeader.split(' ')[1];
+  console.log(" MIDDLEWARE START");
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // 🔥 DB check
-    const user = await userRepository.getById(decoded.id);
-
-    if (!user || user.IsDeleted) {
-      return res.status(401).json({
-        result: "error",
-        message: "Account is deactivated",
-        data: null
-      });
-    }
-
-    // ✅ Attach both JWT + DB user
-    req.user = {
-      ...decoded,
-      dbUser: user
-    };
-
-    next();
-
-  } catch (err) {
-    return res.status(401).json({
-      result: "error",
-      message: "Unauthorized: Invalid token",
-      data: null
-    });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new AppError("Unauthorized: Token missing", 401);
   }
-};
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    throw new AppError("Unauthorized: Token missing", 401);
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    throw new AppError("Unauthorized: Invalid or expired token", 401);
+  }
+
+  if (!decoded.id) {
+    throw new AppError("Unauthorized: Invalid token payload", 401);
+  }
+
+  const user = await userRepository.getFullUserById(decoded.id);
+
+  console.log(" USER FROM DB:", user);
+
+  if (!user) {
+    throw new AppError("Unauthorized: User not found", 401);
+  }
+
+   
+  if (Number(user.IsDeleted) === 1) {
+    throw new AppError("Account is deactivated", 401);
+    console.log(" BLOCKING: User is deleted");
+  }
+
+  req.user = user;
+
+  next();
+});
+
+
 
 module.exports = authMiddleware;

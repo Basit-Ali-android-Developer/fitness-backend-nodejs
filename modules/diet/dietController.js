@@ -41,7 +41,7 @@ const dietPlanSchema = Joi.object({
 // ----------- CREATE / UPDATE DIET PLAN -----------
 const createOrUpdateDietPlan = async (req, res) => {
   try {
-    const userId = req.user.id; // ✅ from middleware
+    const userId = req.user.Id; // ✅ from middleware
 
     // Validate body
     const { error, value } = dietPlanSchema.validate(req.body);

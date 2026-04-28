@@ -7,6 +7,8 @@ const Joi = require('joi');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+const AppError = require('../../utils/AppError');
+
 
 
 
@@ -24,11 +26,20 @@ const signup = async (data) => {
   });
 
   const { error, value } = schema.validate(data);
-  if (error) throw new Error(error.details[0].message.replace(/"/g, ''));
+
+
+   if (error) {
+    throw new AppError(error.details[0].message.replace(/"/g, ''), 400);
+  }
+
 
   // check user
   const existingUser = await userRepository.findByEmail(value.email);
-  if (existingUser) throw new Error("Email already exists");
+
+
+  if (existingUser) {
+    throw new AppError("Email already exists", 409);
+  }
 
   // hash password
   const hashedPassword = await bcrypt.hash(value.password, 10);
@@ -50,25 +61,33 @@ const signup = async (data) => {
 
 
 
+
+
 const login = async (data) => {
 
   const { email, password } = data;
 
-  // 1️⃣ Check user exists
-  const user = await userRepository.findByEmail(email);
 
-  if (!user) {
-    throw new Error("Invalid credentials");
+  if (!email || !password) {
+    throw new AppError("Email and password are required", 400);
   }
 
-  // 2️⃣ Check password
+
+  const user = await userRepository.findByEmail(email);
+
+ 
+  if (!user) {
+    throw new AppError("Invalid credentials", 401);
+  }
+
+
   const isMatch = await bcrypt.compare(password, user.Password);
 
   if (!isMatch) {
-    throw new Error("Invalid credentials");
+    throw new AppError("Invalid credentials", 401);
   }
 
-  // 3️⃣ Generate JWT token
+
   const token = jwt.sign(
     {
       id: user.Id,
@@ -79,7 +98,7 @@ const login = async (data) => {
     { expiresIn: "7d" }
   );
 
-  // 4️⃣ Return clean user object
+
   const responseUser = {
     id: user.Id,
     name: user.Name,
@@ -99,6 +118,9 @@ const login = async (data) => {
     token
   };
 };
+
+
+
 
 
 
@@ -133,32 +155,18 @@ const updateProfileSchema = Joi.object({
 
 
 
-// ------------------- SERVICE -------------------
-const updateProfile = async (userId, data) => {
 
-  // 1️⃣ validate input (STRICT)
+const updateProfile = async (user, data) => {
+
   const { error, value } = updateProfileSchema.validate(data, {
     abortEarly: true
   });
 
   if (error) {
-    throw new Error(error.details[0].message);
+    throw new AppError(error.details[0].message, 400);
   }
 
-  // 2️⃣ get user
-  const user = await userRepository.getById(userId);
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // 3️⃣ block deleted user
-  if (user.IsDeleted) {
-    throw new Error("Account is deactivated");
-  }
-
-  // 4️⃣ update DB
-  const updatedUser = await userRepository.updateUser(userId, {
+  const updatedUser = await userRepository.updateUser(user.Id, {
     height: value.height,
     weight: value.weight,
     age: value.age,
@@ -166,7 +174,10 @@ const updateProfile = async (userId, data) => {
     isProfileComplete: 1
   });
 
-  // 5️⃣ return FULL SAFE USER PROFILE
+  // if (!updatedUser) {
+  //   throw new AppError("User not found or deleted", 404);
+  // }
+
   return {
     id: updatedUser.Id,
     name: updatedUser.Name,
@@ -186,25 +197,20 @@ const updateProfile = async (userId, data) => {
 
 
 
-
-
 const getProfileById = async (id) => {
 
-  // 1️⃣ validate id
   const userId = parseInt(id);
 
   if (!userId || isNaN(userId)) {
-    throw new Error("Invalid user ID");
+   throw new AppError("Invalid user ID", 404);
   }
 
-  // 2️⃣ fetch user
-  const user = await userRepository.getById(userId);
+  const user = await userRepository.getFullUserById(userId);
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
 
-  // 3️⃣ return formatted response
   return {
     id: user.Id,
     name: user.Name,
@@ -215,6 +221,8 @@ const getProfileById = async (id) => {
     height: user.Height,
     weight: user.Weight,
     isProfileComplete: user.IsProfileComplete,
+    isDeleted: user.IsDeleted,
+    DeletedAt: user.DeletedAt,
     created_at: user.CreatedAt,
     updated_at: user.UpdatedAt
   };
@@ -224,19 +232,14 @@ const getProfileById = async (id) => {
 
 
 
+
 const getUserProfileWithDiet = async (userId) => {
 
-  // 1️⃣ fetch user
   const user = await userRepository.getById(userId);
+  
 
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  // 2️⃣ fetch diet plan
   const dietPlan = await userRepository.getDietByUserId(userId);
 
-  // 3️⃣ return combined response
   return {
     user: {
       id: user.Id,
@@ -254,17 +257,22 @@ const getUserProfileWithDiet = async (userId) => {
 
 
 
+
+
+
+
+
 const deleteUser = async (userId) => {
 
   const user = await userRepository.getById(userId);
 
   if (!user) {
-    throw new Error("User not found");
-  }
+  throw new AppError("User not found", 404);
+   }
 
-  if (user.IsDeleted) {
-    throw new Error("User already deleted");
-  }
+if (user.IsDeleted === true) {
+  throw new AppError("User already deleted", 400);
+   }
 
   await userRepository.deleteUser(userId);
 
@@ -274,22 +282,28 @@ const deleteUser = async (userId) => {
 };
 
 
+
+
+
+
 const deleteUserByAdmin = async (userId) => {
 
   const id = parseInt(userId);
 
   if (!id || isNaN(id)) {
-    throw new Error("Invalid user ID");
+    throw new AppError("Invalid user ID", 404);
   }
 
   const user = await userRepository.getById(id);
 
   if (!user) {
-    throw new Error("User not found");
+    throw new AppError("User not found", 404);
   }
 
-  if (user.IsDeleted) {
-    throw new Error("User already deleted");
+  console.log(" USER FROM DB:", user);
+
+  if (Number(user.IsDeleted) === 1) {
+    throw new AppError("User already deleted", 404);
   }
 
   await userRepository.deleteUser(id);
@@ -300,4 +314,56 @@ const deleteUserByAdmin = async (userId) => {
 };
 
 
-module.exports = { signup, login, updateProfile , getProfileById, getUserProfileWithDiet, deleteUser, deleteUserByAdmin};
+
+
+
+const ActivateUserByAdmin = async (userId) => {
+
+  const id = parseInt(userId);
+
+  if (!id || isNaN(id)) {
+    throw new AppError("Invalid user ID", 404);
+  }
+
+  const user = await userRepository.getById(id);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  console.log(" USER FROM DB:", user);
+
+  if (Number(user.IsDeleted) === 0) {
+    throw new AppError("User already Active", 404);
+  }
+
+  await userRepository.ActivateUser(id);
+
+  return {
+    message: "User activated by admin successfully"
+  };
+};
+
+
+
+const getUsersWithDiet = async (page) => {
+
+  const limit = 10; 
+  const offset = (page - 1) * limit;
+
+  const { rows, total } = await userRepository.getUsersWithDiet(offset, limit);
+
+  return {
+    data: rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total
+    }
+  };
+};
+
+
+module.exports = { signup, login, updateProfile , getProfileById, getUserProfileWithDiet, deleteUser, deleteUserByAdmin, ActivateUserByAdmin, getUsersWithDiet};

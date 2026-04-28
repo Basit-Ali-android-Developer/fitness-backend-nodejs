@@ -1,87 +1,61 @@
 const userService = require('./userService');
+const asyncHandler = require('../../utils/asyncHandler');
+
+
+
+
+
+const signup = asyncHandler(async (req, res) => {
+
+  await userService.signup(req.body);
+
+  res.status(201).json({
+    result: "success",
+    message: "Account created successfully",
+    data: null
+  });
+
+});
+
+
+
+
+
+const login = asyncHandler(async (req, res) => {
+
+  const result = await userService.login(req.body);
+
+  res.status(200).json({
+    result: "success",
+    message: "Login successful",
+    data: result
+  });
+
+});
 
 
 
 
 
 
-const signup = async (req, res) => {
-  try {
-    const result = await userService.signup(req.body);
+const updateProfile = asyncHandler(async (req, res) => {
 
-    return res.status(201).json({
-      result: "success",
-      message: "Account created successfully",
-      data: null
-    });
+  const result = await userService.updateProfile(req.user, req.body);
 
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
+  res.status(200).json({
+    result: "success",
+    message: "Profile updated successfully",
+    data: result
+  });
+});
 
 
 
 
 
 
-const login = async (req, res) => {
-  try {
-    const result = await userService.login(req.body);
+const getProfileById =  asyncHandler(async (req, res) => {
 
-    return res.status(200).json({
-      result: "success",
-      message: "Login successful",
-      data: {
-         user: result.user,
-         token: result.token
-       }
-    });
-
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
-
-
-
-
-
-const updateProfile = async (req, res) => {
-  try {
-    const userId = req.user.id; // from auth middleware
-
-    const result = await userService.updateProfile(userId, req.body);
-
-    return res.status(200).json({
-      result: "success",
-      message: "Profile updated successfully",
-      data: result
-    });
-
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
-
-
-
-
-
-const getProfileById = async (req, res) => {
-  try {
     const userId = req.params.id;
 
     const result = await userService.getProfileById(userId);
@@ -90,47 +64,36 @@ const getProfileById = async (req, res) => {
       result: "success",
       message: "Profile fetched successfully",
       data: result
-    });
-
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
+  });
+});
 
 
 
 
-const getUserProfileWithDiet = async (req, res) => {
-  try {
-    const userId = req.user.id;
 
-    const result = await userService.getUserProfileWithDiet(userId);
 
-    return res.status(200).json({
-      result: "success",
-      message: "User profile fetched successfully",
-      data: result
-    });
 
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
+const getUserProfileWithDiet = asyncHandler(async (req, res) => {
+  const userId = req.user.Id;
+
+  const result = await userService.getUserProfileWithDiet(userId);
+
+  return res.status(200).json({
+    result: "success",
+    message: "User profile fetched successfully",
+    data: result
+  });
+});
 
 
 
 
-const deleteUser = async (req, res) => {
-  try {
-    const userId = req.user.id; // from auth middleware
+
+
+
+const deleteUser = asyncHandler(async (req, res) => {
+
+    const userId = req.user.Id; 
 
     const result = await userService.deleteUser(userId);
 
@@ -138,22 +101,13 @@ const deleteUser = async (req, res) => {
       result: "success",
       message: result.message,
       data: null
-    });
-
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
-      data: null
-    });
-  }
-};
+  });
+});
 
 
 
 
-const deleteUserByAdmin = async (req, res) => {
-  try {
+const deleteUserByAdmin = asyncHandler(async (req, res) => {
     const userId = req.params.id;
 
     const result = await userService.deleteUserByAdmin(userId);
@@ -163,16 +117,42 @@ const deleteUserByAdmin = async (req, res) => {
       message: result.message,
       data: null
     });
+});
 
-  } catch (err) {
-    return res.status(400).json({
-      result: "error",
-      message: err.message,
+
+
+
+const ActivateUserByAdmin = asyncHandler(async (req, res) => {
+    const userId = req.params.id;
+
+    const result = await userService.ActivateUserByAdmin(userId);
+
+    return res.status(200).json({
+      result: "success",
+      message: result.message,
       data: null
     });
-  }
-};
+});
 
 
 
-module.exports = { signup , login , updateProfile , getProfileById , getUserProfileWithDiet, deleteUser, deleteUserByAdmin};
+
+const getUsersWithDiet = asyncHandler(async (req, res) => {
+
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await userService.getUsersWithDiet(page);
+
+  return res.status(200).json({
+    result: "success",
+    message: "Users with diet fetched successfully",
+    data: result.data,
+    pagination: result.pagination
+  });
+
+});
+
+
+
+
+module.exports = { signup , login , updateProfile , getProfileById , getUserProfileWithDiet, deleteUser, deleteUserByAdmin , ActivateUserByAdmin , getUsersWithDiet};

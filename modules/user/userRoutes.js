@@ -8,7 +8,9 @@ const { signup,
         getProfileById ,
         getUserProfileWithDiet,
         deleteUser,
-        deleteUserByAdmin } = require('./userController');
+        deleteUserByAdmin,
+        ActivateUserByAdmin,
+        getUsersWithDiet } = require('./userController');
 
 // POST /api/users/
 router.post('/signup', signup);
@@ -18,7 +20,10 @@ router.get('/getProfileById/:id', getProfileById);
 
 router.get('/getProfileWithDiet', authMiddleware, getUserProfileWithDiet);
 router.delete('/deleteUser', authMiddleware, deleteUser);
-router.delete('/deleteUserByAdmin/:id', authMiddleware, adminMiddleware, deleteUserByAdmin);
+router.delete('/deleteUserByAdmin/:id', adminMiddleware,   deleteUserByAdmin);
+router.put('/ActivateUserByAdmin/:id', adminMiddleware,   ActivateUserByAdmin);
+
+router.get('/getUsersWithDiet', adminMiddleware, getUsersWithDiet);
 
 
 
