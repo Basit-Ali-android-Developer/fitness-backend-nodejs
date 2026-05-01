@@ -494,13 +494,99 @@ const deleteMeal = async (transaction, mealId, UserId) => {
     `);
 };
 
+// ======================================================
+// Get meals from tracking table
+// ======================================================
 
 
+
+const getTodayMeals = async (UserId) => {
+
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input("UserId", sql.Int, UserId)
+    .query(`
+      SELECT *
+      FROM MealTracking
+      WHERE UserId = @UserId
+      ORDER BY MealTime ASC
+    `);
+
+  return result.recordset;
+};
+
+
+
+
+
+
+const getTodayMealIngredients = async (trackingIds) => {
+
+  if (!trackingIds.length) return [];
+
+  const pool = await poolPromise;
+  const request = new sql.Request(pool);
+
+  const params = trackingIds.map((_, i) => `@id${i}`);
+
+  trackingIds.forEach((id, i) => {
+    request.input(`id${i}`, sql.Int, id);
+  });
+
+  const result = await request.query(`
+    SELECT *
+    FROM MealTrackingIngredients
+    WHERE MealTrackingId IN (${params.join(",")})
+  `);
+
+  return result.recordset;
+};
 
 
 // ======================================================
-// EXPORTS (CLEANED)
+// mark as done meal
 // ======================================================
+
+
+const getMealTrackingById = async (UserId, trackingId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input("Id", sql.Int, trackingId)
+    .input("UserId", sql.Int, UserId)
+    .query(`
+      SELECT Id, IsDone
+      FROM MealTracking
+      WHERE Id = @Id
+        AND UserId = @UserId
+    `);
+
+  return result.recordset[0];
+};
+
+
+
+const markMealDone = async (UserId, trackingId) => {
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input("Id", sql.Int, trackingId)
+    .input("UserId", sql.Int, UserId)
+    .query(`
+      UPDATE MealTracking
+      SET IsDone = 1
+      WHERE Id = @Id
+        AND UserId = @UserId
+    `);
+
+  return result.rowsAffected[0];
+};
+
+
+
+
+
 module.exports = {
   createTransaction,
 
@@ -540,7 +626,14 @@ module.exports = {
 
   deleteMealTracking ,
 
-  deleteMeal 
+  deleteMeal ,
+
+  getTodayMeals,
+  getTodayMealIngredients,
+
+  getMealTrackingById ,
+  markMealDone
+
   
 
   

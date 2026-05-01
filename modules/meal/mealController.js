@@ -102,122 +102,32 @@ const deleteMeal = asyncHandler(async (req, res) => {
 
 
 
-const getTodayMeals = async (req, res) => {
-  try {
-    const pool = await poolPromise;
-    const userId = req.user.id;
+const getTodayMeals = asyncHandler(async (req, res) => {
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const result = await mealService.getTodayMeals(req.user.Id);
 
-    const result = await new sql.Request(pool)
-      .input("UserId", sql.Int, userId)
-      .input("Date", sql.Date, today)
-      .query(`
-        SELECT m.*, mt.IsDone
-        FROM MealTracking mt
-        JOIN Meals m ON mt.MealId = m.Id
-        WHERE mt.UserId = @UserId
-        AND mt.Date = @Date
-      `);
+  res.status(200).json({
+    result: "success",
+    message: result.length ? "Meals fetched successfully" : "No meals found",
+    data: result
+  });
 
-    return res.status(200).json({
-      result: "success",
-      message: "Meals get successfully",
-      data: result.recordset
-    });
-
-  } catch (err) {
-    console.error(err);
-
-    return res.status(500).json({
-      result: "error",
-      message: "Server error"
-    });
-  }
-};
+});
 
 
 
-const markMealDone = async (req, res) => {
-  try {
-    const pool = await poolPromise;
-    const userId = req.user.id;
+const markMealDone = asyncHandler(async (req, res) => {
 
-    // 👉 NOW USING TRACKING ID
-    const trackingId = parseInt(req.params.id);
+  const UserId = req.user.Id;
+  const trackingId = parseInt(req.params.id);
 
-    if (!trackingId) {
-      return res.status(400).json({
-        result: "error",
-        message: "Invalid tracking id"
-      });
-    }
+  const result = await mealService.markMealDone(UserId, trackingId);
 
-    // ======================================================
-    // 1️⃣ CHECK IF RECORD EXISTS
-    // ======================================================
-    const check = await new sql.Request(pool)
-      .input("Id", sql.Int, trackingId)
-      .input("UserId", sql.Int, userId)
-      .query(`
-        SELECT Id, IsDone
-        FROM MealTracking
-        WHERE Id = @Id
-          AND UserId = @UserId
-      `);
-
-    if (check.recordset.length === 0) {
-      return res.status(404).json({
-        result: "error",
-        message: "Meal tracking not found"
-      });
-    }
-
-    // ======================================================
-    // 2️⃣ ALREADY DONE CHECK
-    // ======================================================
-    if (check.recordset[0].IsDone === 1) {
-      return res.status(200).json({
-        result: "success",
-        message: "Meal already marked as done"
-      });
-    }
-
-    // ======================================================
-    // 3️⃣ UPDATE STATUS
-    // ======================================================
-    const update = await new sql.Request(pool)
-      .input("Id", sql.Int, trackingId)
-      .input("UserId", sql.Int, userId)
-      .query(`
-        UPDATE MealTracking
-        SET IsDone = 1
-        WHERE Id = @Id
-          AND UserId = @UserId
-      `);
-
-    if (update.rowsAffected[0] === 0) {
-      return res.status(500).json({
-        result: "error",
-        message: "Failed to update meal status"
-      });
-    }
-
-    return res.status(200).json({
-      result: "success",
-      message: "Meal marked as done successfully"
-    });
-
-  } catch (err) {
-    console.error("markMealDone error:", err);
-
-    return res.status(500).json({
-      result: "error",
-      message: "Server error"
-    });
-  }
-};
+  return res.status(200).json({
+    result: "success",
+    message: result.message
+  });
+});
 
 
 
@@ -308,4 +218,19 @@ const getMealHistory = async (req, res) => {
 };
 
 
-module.exports = { createMeal, getUserMeals, getMealById, updateMeal, deleteMeal, getTodayMeals, markMealDone, getMealHistory };
+
+
+
+
+
+
+module.exports = { createMeal,
+   getUserMeals,
+  getMealById,
+  updateMeal, 
+  deleteMeal, 
+  getTodayMeals, 
+  markMealDone, 
+  getMealHistory, 
+  getTodayMeals
+};

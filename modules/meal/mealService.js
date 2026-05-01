@@ -170,6 +170,7 @@ const getUserMeals = async (UserId) => {
       .filter(i => i.MealId === meal.Id)
       .map(i => ({
         foodId: i.FoodId,
+        name: i.Name,
         quantity: i.Quantity,
         unit: i.Unit,
         calories: i.Calories,
@@ -373,14 +374,6 @@ await mealRepository.insertTrackingIngredientsFromMeal(
 
 
 
-
-
-
-
-
-
-
-
 const deleteMeal = async (UserId, mealId) => {
 
   if (!mealId) throw new AppError("Invalid meal id", 400);
@@ -434,13 +427,86 @@ const deleteMeal = async (UserId, mealId) => {
 
 
 
-// ==========================
-// EXPORTS
-// ==========================
+
+const getTodayMeals = async (UserId) => {
+
+  const meals = await mealRepository.getTodayMeals(UserId);
+
+  if (!meals.length) return [];
+
+ 
+  const trackingIds = meals.map(m => m.Id);
+
+  const ingredients = await mealRepository.getTodayMealIngredients(trackingIds);
+
+  return meals.map(meal => ({
+    id: meal.Id, 
+    name: meal.Name,
+    mealTime: meal.MealTime,
+    totalCalories: meal.TotalCalories,
+    totalProtein: meal.TotalProtein,
+    totalCarbs: meal.TotalCarbs,
+    totalFats: meal.TotalFats,
+    date: meal.Date,
+    isDone: meal.IsDone,
+
+    ingredients: ingredients
+      .filter(i => i.MealTrackingId === meal.Id) // FIXED
+      .map(i => ({
+        foodId: i.FoodId,
+        name: i.Name,
+        quantity: i.Quantity,
+        unit: i.Unit,
+        calories: i.Calories,
+        protein: i.Protein,
+        carbs: i.Carbs,
+        fats: i.Fats
+      }))
+  }));
+};
+
+
+
+
+
+
+const markMealDone = async (UserId, trackingId) => {
+
+  if (!trackingId) {
+    throw new AppError("Invalid tracking id", 400);
+  }
+
+  const tracking = await mealRepository.getMealTrackingById(UserId, trackingId);
+
+  if (!tracking) {
+    throw new AppError("Meal tracking not found", 404);
+  }
+
+  if (tracking.IsDone) {
+    return { message: "Meal already marked as done" };
+  }
+
+  const updated = await mealRepository.markMealDone(UserId, trackingId);
+
+  if (!updated) {
+    throw new AppError("Failed to update meal status", 500);
+  }
+
+  return { message: "Meal marked as done successfully" };
+};
+
+
+
+
+
+
+
 module.exports = {
   createMeal,
   getUserMeals,
   getMealById,
   updateMeal,
-  deleteMeal
+  deleteMeal,
+  getTodayMeals,
+  markMealDone
 };
