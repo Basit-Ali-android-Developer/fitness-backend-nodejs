@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { getAllTemplateWorkoutSplits,
-        getWorkoutTemplateSplitById,
-        createFullWorkoutTemplateSplit,
-        updateWorkoutTemplateSplit,
-        deleteWorkoutSplitTemplate  
-    } = require('./workoutTemplateController');
+// const { getAllTemplateWorkoutSplits,
+//         getWorkoutTemplateSplitById,
+//         createFullWorkoutTemplateSplit,
+//         updateWorkoutTemplateSplit,
+//         deleteWorkoutSplitTemplate  
+//     } = require('./workoutTemplateController');
 
 const { createWorkoutPlan,
         getUserWorkoutPlans,
@@ -30,11 +30,11 @@ const { getNextWorkout,
 
 //------------work out template function in    workoutTemplateController
 
-router.get('/getAllTemplateWorkoutSplits', authMiddleware, getAllTemplateWorkoutSplits);
-router.get('/getWorkoutTemplateSplitById/:id', authMiddleware, getWorkoutTemplateSplitById);
-router.post('/createFullWorkoutTemplateSplit', authMiddleware, createFullWorkoutTemplateSplit);
-router.put('/updateWorkoutTemplateSplit/:id', authMiddleware, updateWorkoutTemplateSplit);
-router.delete('/deleteWorkoutSplitTemplate/:id', authMiddleware, deleteWorkoutSplitTemplate);
+// router.get('/getAllTemplateWorkoutSplits', authMiddleware, getAllTemplateWorkoutSplits);
+// router.get('/getWorkoutTemplateSplitById/:id', authMiddleware, getWorkoutTemplateSplitById);
+// router.post('/createFullWorkoutTemplateSplit', authMiddleware, createFullWorkoutTemplateSplit);
+// router.put('/updateWorkoutTemplateSplit/:id', authMiddleware, updateWorkoutTemplateSplit);
+// router.delete('/deleteWorkoutSplitTemplate/:id', authMiddleware, deleteWorkoutSplitTemplate);
 
 
 //------------work out Plan function in    workoutPlanController
