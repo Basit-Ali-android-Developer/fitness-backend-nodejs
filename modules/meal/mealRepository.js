@@ -587,6 +587,62 @@ const markMealDone = async (UserId, trackingId) => {
 
 
 
+const getMealHistory = async (userId) => {
+
+  const pool = await poolPromise;
+
+  const result = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .query(`
+      SELECT 
+        Id,
+        MealId,
+        Name,
+        MealTime,
+        TotalCalories,
+        TotalProtein,
+        TotalCarbs,
+        TotalFats,
+        Date,
+        IsDone,
+        CreatedAt
+      FROM MealHistory
+      WHERE UserId = @UserId
+      ORDER BY Date DESC, CreatedAt DESC
+    `);
+
+  return result.recordset;
+};
+
+
+
+
+
+const getMealHistoryIngredients = async (historyIds) => {
+
+  if (!historyIds.length) return [];
+
+  const pool = await poolPromise;
+  const request = new sql.Request(pool);
+
+  const params = historyIds.map((_, i) => `@id${i}`);
+
+  historyIds.forEach((id, i) => {
+    request.input(`id${i}`, sql.Int, id);
+  });
+
+  const result = await request.query(`
+    SELECT *
+    FROM MealHistoryIngredients
+    WHERE MealHistoryId IN (${params.join(",")})
+  `);
+
+  return result.recordset;
+};
+
+
+
+
 module.exports = {
   createTransaction,
 
@@ -632,7 +688,10 @@ module.exports = {
   getTodayMealIngredients,
 
   getMealTrackingById ,
-  markMealDone
+  markMealDone,
+
+  getMealHistory,
+  getMealHistoryIngredients
 
   
 

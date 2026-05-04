@@ -1,12 +1,12 @@
 const cron = require("node-cron");
 const { sql, poolPromise } = require("../db/connection");
 
-console.log("🔥 FULL DAILY MEAL SYSTEM CRON LOADED");
+console.log(" FULL DAILY MEAL SYSTEM CRON LOADED");
 console.log("SERVER TIME:", new Date().toString());
 
-// ⏰ Set your time here
-cron.schedule("21 17 * * *", async () => {
-  console.log("⏰ CRON STARTED:", new Date().toString());
+//  Set your time here format  min  hour  
+cron.schedule("06 17 * * *", async () => {
+  console.log(" CRON STARTED:", new Date().toString());
 
   const pool = await poolPromise;
   const transaction = new sql.Transaction(pool);
@@ -50,7 +50,7 @@ cron.schedule("21 17 * * *", async () => {
     `);
 
     // ======================================================
-    // 🟡 2. MOVE Ingredients → HistoryIngredients
+    //  2. MOVE Ingredients → HistoryIngredients
     // ======================================================
     await new sql.Request(transaction).query(`
       INSERT INTO MealHistoryIngredients (
@@ -86,14 +86,14 @@ cron.schedule("21 17 * * *", async () => {
     `);
 
     // ======================================================
-    // 🟡 3. CLEAR MealTracking (cascade deletes ingredients)
+    //  3. CLEAR MealTracking (cascade deletes ingredients)
     // ======================================================
     await new sql.Request(transaction).query(`
       DELETE FROM MealTracking;
     `);
 
     // ======================================================
-    // 🟡 4. CREATE TODAY TRACKING FROM Meals
+    //  4. CREATE TODAY TRACKING FROM Meals
     // ======================================================
     await new sql.Request(transaction)
       .input("Today", sql.Date, today)
@@ -125,7 +125,7 @@ cron.schedule("21 17 * * *", async () => {
       `);
 
     // ======================================================
-    // 🟡 5. COPY INGREDIENTS → MealTrackingIngredients
+    //  5. COPY INGREDIENTS → MealTrackingIngredients
     // ======================================================
     await new sql.Request(transaction)
       .input("Today", sql.Date, today)
@@ -158,18 +158,18 @@ cron.schedule("21 17 * * *", async () => {
       `);
 
     // ======================================================
-    // 🟡 6. COMMIT
+    //  6. COMMIT
     // ======================================================
     await transaction.commit();
 
-    console.log("✅ FULL DAILY SYSTEM COMPLETED SUCCESSFULLY");
+    console.log(" FULL DAILY SYSTEM COMPLETED SUCCESSFULLY");
 
   } catch (err) {
-    console.error("❌ CRON ERROR:", err);
+    console.error(" CRON ERROR:", err);
     try {
       await transaction.rollback();
     } catch (rollbackErr) {
-      console.error("❌ ROLLBACK ERROR:", rollbackErr);
+      console.error(" ROLLBACK ERROR:", rollbackErr);
     }
   }
 });

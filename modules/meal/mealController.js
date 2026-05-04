@@ -132,90 +132,17 @@ const markMealDone = asyncHandler(async (req, res) => {
 
 
 
-const getMealHistory = async (req, res) => {
-  try {
-    const pool = await poolPromise;
-    const userId = req.user.id;
+const getMealHistory = asyncHandler(async (req, res) => {
 
-    // ======================================================
-    // 1️⃣ GET ALL HISTORY MEALS
-    // ======================================================
-    const historyResult = await new sql.Request(pool)
-      .input("UserId", sql.Int, userId)
-      .query(`
-        SELECT 
-          mh.Id,
-          mh.UserId,
-          mh.MealId,
-          mh.Name,
-          mh.MealTime,
-          mh.TotalCalories,
-          mh.TotalProtein,
-          mh.TotalCarbs,
-          mh.TotalFats,
-          mh.Date,
-          mh.IsDone,
-          mh.CreatedAt
-        FROM MealHistory mh
-        WHERE mh.UserId = @UserId
-        ORDER BY mh.Date DESC, mh.CreatedAt DESC
-      `);
+  const result = await mealService.getMealHistory(req.user.Id);
 
-    const meals = historyResult.recordset;
+  res.status(200).json({
+    result: "success",
+    message: result.length ? "Meal history fetched successfully" : "No meal history found",
+    data: result
+  });
 
-    if (meals.length === 0) {
-      return res.status(200).json({
-        result: "success",
-        message: "No meal history found",
-        data: []
-      });
-    }
-
-    // ======================================================
-    // 2️⃣ GET ALL INGREDIENTS (BULK FETCH - FAST)
-    // ======================================================
-    const ingredientsResult = await new sql.Request(pool)
-      .input("UserId", sql.Int, userId)
-      .query(`
-        SELECT 
-          mhi.*
-        FROM MealHistoryIngredients mhi
-        INNER JOIN MealHistory mh 
-          ON mh.Id = mhi.MealHistoryId
-        WHERE mh.UserId = @UserId
-      `);
-
-    const ingredients = ingredientsResult.recordset;
-
-    // ======================================================
-    // 3️⃣ MAP INGREDIENTS TO MEALS
-    // ======================================================
-    const historyWithIngredients = meals.map(meal => {
-      return {
-        ...meal,
-        ingredients: ingredients.filter(i => i.MealHistoryId === meal.Id)
-      };
-    });
-
-    // ======================================================
-    // 4️⃣ RESPONSE
-    // ======================================================
-    return res.status(200).json({
-      result: "success",
-      message: "Meal history fetched successfully",
-      data: historyWithIngredients
-    });
-
-  } catch (err) {
-    console.error("getMealHistory error:", err);
-
-    return res.status(500).json({
-      result: "error",
-      message: "Server error",
-      data: null
-    });
-  }
-};
+});
 
 
 
@@ -224,7 +151,8 @@ const getMealHistory = async (req, res) => {
 
 
 
-module.exports = { createMeal,
+module.exports = {
+   createMeal,
    getUserMeals,
   getMealById,
   updateMeal, 

@@ -467,7 +467,9 @@ const getTodayMeals = async (UserId) => {
 
 
 
-
+// ==========================
+// done meal 
+// ==========================
 
 
 const markMealDone = async (UserId, trackingId) => {
@@ -496,7 +498,49 @@ const markMealDone = async (UserId, trackingId) => {
 };
 
 
+// ==========================
+//  MEALs history 
+// ==========================
 
+
+
+const getMealHistory = async (userId) => {
+
+  const meals = await mealRepository.getMealHistory(userId);
+
+  if (!meals.length) return [];
+
+  const historyIds = meals.map(m => m.Id);
+
+  const ingredients = await mealRepository.getMealHistoryIngredients(historyIds);
+
+  return meals.map(meal => ({
+    id: meal.Id,
+    mealId: meal.MealId,
+    name: meal.Name,
+    mealTime: meal.MealTime,
+    totalCalories: meal.TotalCalories,
+    totalProtein: meal.TotalProtein,
+    totalCarbs: meal.TotalCarbs,
+    totalFats: meal.TotalFats,
+    date: meal.Date,
+    isDone: meal.IsDone,
+    createdAt: meal.CreatedAt,
+
+    ingredients: ingredients
+      .filter(i => i.MealHistoryId === meal.Id)
+      .map(i => ({
+        foodId: i.FoodId,
+        name: i.Name,
+        quantity: i.Quantity,
+        unit: i.Unit,
+        calories: i.Calories,
+        protein: i.Protein,
+        carbs: i.Carbs,
+        fats: i.Fats
+      }))
+  }));
+};
 
 
 
@@ -508,5 +552,6 @@ module.exports = {
   updateMeal,
   deleteMeal,
   getTodayMeals,
-  markMealDone
+  markMealDone,
+  getMealHistory
 };
