@@ -12,16 +12,10 @@ const { createFullWorkoutTemplateSplit,
 
 
 router.post('/createFullWorkoutTemplateSplit', adminMiddleware, createFullWorkoutTemplateSplit);
-
-
 router.get('/getAllTemplates', adminMiddleware, getAllTemplates);
-
- router.get('/getTemplateById/:id', adminMiddleware, getTemplateById);
-
- router.put('/updateWorkoutTemplateSplit/:id', adminMiddleware, updateWorkoutTemplateSplit);
-
-
- router.delete('/deleteWorkoutTemplate/:id', adminMiddleware, deleteWorkoutTemplate);
+router.get('/getTemplateById/:id', adminMiddleware, getTemplateById);
+router.put('/updateWorkoutTemplateSplit/:id', adminMiddleware, updateWorkoutTemplateSplit);
+router.delete('/deleteWorkoutTemplate/:id', adminMiddleware, deleteWorkoutTemplate);
 
 
 
