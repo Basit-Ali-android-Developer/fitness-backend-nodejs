@@ -13,9 +13,10 @@ const dietRoutes = require('./modules/diet/dietRoutes');
 const mealRoutes = require('./modules/meal/mealRoutes');
 const foodRoutes = require('./modules/food/foodRoutes');
 const summaryRoutes = require('./modules/dashBoard/summaryRoutes');
-const workoutRoutes = require('./modules/workout/workoutRoutes');
+
 const workoutTemplateRoutes = require('./modules/workoutTemplate/workoutTemplateRoutes');
 const workoutPlanRoutes = require('./modules/workoutPlan/workoutPlanRoutes');
+const workoutTrackingRoutes = require('./modules/workoutTracking/workoutTrackingRoutes');
 
 
 const app = express();
@@ -40,9 +41,10 @@ app.use('/api/diet', dietRoutes);
 app.use('/api/meal', mealRoutes);
 app.use('/api/dashboard', summaryRoutes);
 app.use('/api/food', foodRoutes);
-app.use('/api/workout', workoutRoutes);
+
 app.use('/api/workoutTemplate', workoutTemplateRoutes);
 app.use('/api/workoutPlan', workoutPlanRoutes);
+app.use('/api/workoutTracking', workoutTrackingRoutes);
 
 
 require('./cron/mealCron');
