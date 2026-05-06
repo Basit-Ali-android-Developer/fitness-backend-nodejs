@@ -166,6 +166,59 @@ const getDayExercises = async (dayId) => {
 };
 
 
+
+const getUserPlansAll = async (userId, page = 1) => {
+
+  const pool = await poolPromise;
+
+  const limit = 5;
+  const offset = (page - 1) * limit;
+
+
+  const dataResult = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .input("offset", sql.Int, offset)
+    .input("limit", sql.Int, limit)
+    .query(`
+      SELECT 
+        Id,
+        Name,
+        Goal,
+        Level,
+        DaysCount,
+        CurrentDayIndex,
+        IsActive,
+        Description
+      FROM UserWorkoutPlans
+      WHERE UserId = @UserId
+      ORDER BY CreatedAt DESC
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+    `);
+
+  
+  const countResult = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .query(`
+      SELECT COUNT(*) AS total
+      FROM UserWorkoutPlans
+      WHERE UserId = @UserId
+    `);
+
+  const total = countResult.recordset[0].total;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: dataResult.recordset,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages
+    }
+  };
+};
+
 //  update plan
 
 
@@ -368,7 +421,9 @@ module.exports = {
   
   deletePlanExercises,
   deletePlan,
-  getAnotherUserPlan
+  getAnotherUserPlan,
+
+  getUserPlansAll
 
 
 

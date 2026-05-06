@@ -3,19 +3,57 @@ const { sql, poolPromise } = require('../../db/connection');
 
 
 
-const getFoods = async () => {
+// const getFoods = async () => {
+//   const pool = await poolPromise;
+
+//   const result = await pool.request().query(`
+//     SELECT Id, Name, Calories, Protein, Carbs, Fats, Unit
+//     FROM Foods
+//     WHERE IsActive = 1
+//     ORDER BY Name ASC
+//   `);
+
+//   return result.recordset;
+// };
+
+const getFoods = async (page = 1) => {
   const pool = await poolPromise;
 
-  const result = await pool.request().query(`
-    SELECT Id, Name, Calories, Protein, Carbs, Fats, Unit
-    FROM Foods
-    WHERE IsActive = 1
-    ORDER BY Name ASC
-  `);
+  const limit = 10;
+  const offset = (page - 1) * limit;
 
-  return result.recordset;
+  // 1️⃣ Data query
+  const dataResult = await pool.request()
+    .input("offset", sql.Int, offset)
+    .input("limit", sql.Int, limit)
+    .query(`
+      SELECT Id, Name, Calories, Protein, Carbs, Fats, Unit
+      FROM Foods
+      WHERE IsActive = 1
+      ORDER BY Name ASC
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
+    `);
+
+  // 2️⃣ Count query
+  const countResult = await pool.request()
+    .query(`
+      SELECT COUNT(*) AS total
+      FROM Foods
+      WHERE IsActive = 1
+    `);
+
+  const total = countResult.recordset[0].total;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: dataResult.recordset,
+    total,
+    totalPages,
+    page,
+    limit,
+    hasNextPage: page < totalPages
+  };
 };
-
 
 
 

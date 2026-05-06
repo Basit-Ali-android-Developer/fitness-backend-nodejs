@@ -24,14 +24,19 @@ const createWorkoutPlan = asyncHandler(async (req, res) => {
 
 const getUserWorkoutPlans = asyncHandler(async (req, res) => {
 
-  const result = await workoutPlanService.getUserWorkoutPlans(req.user.Id);
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await workoutPlanService.getUserWorkoutPlans(
+    req.user.Id,
+    page
+  );
 
   res.status(200).json({
     success: true,
     message: "Workout plans fetched successfully",
-    data: result
+    data: result.data,
+    pagination: result.pagination
   });
-
 });
 
 

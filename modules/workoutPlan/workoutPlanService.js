@@ -143,19 +143,17 @@ const createWorkoutPlan = async (userId, data) => {
 
 
 
-const getUserWorkoutPlans = async (userId) => {
+const getUserWorkoutPlans = async (userId, page = 1) => {
 
-
-  const plans = await workoutPlanRepo.getUserPlans(userId);
+  const { data: plans, pagination } =
+    await workoutPlanRepo.getUserPlansAll(userId, page);
 
   for (const plan of plans) {
-
 
     const days = await workoutPlanRepo.getPlanDays(plan.Id);
 
     for (const day of days) {
 
-    
       const exercises = await workoutPlanRepo.getDayExercises(day.Id);
 
       day.exercises = exercises;
@@ -164,7 +162,10 @@ const getUserWorkoutPlans = async (userId) => {
     plan.days = days;
   }
 
-  return plans;
+  return {
+    data: plans,
+    pagination
+  };
 };
 
 

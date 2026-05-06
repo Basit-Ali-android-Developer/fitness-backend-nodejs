@@ -98,12 +98,17 @@ const skipWorkout = asyncHandler(async (req, res) => {
 
 const getWorkoutHistory = asyncHandler(async (req, res) => {
 
-  const result = await workoutTrackingService.getWorkoutHistory(req.user.Id);
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await workoutTrackingService.getWorkoutHistory(req.user.Id, page);
 
   res.status(200).json({
     success: true,
-    message: "Workout history fetched successfully",
-    data: result
+    message: result.data.length 
+      ? "Workout history fetched successfully" 
+      : "No workout history found",
+    data: result.data,
+    pagination: result.pagination
   });
 
 });

@@ -134,12 +134,17 @@ const markMealDone = asyncHandler(async (req, res) => {
 
 const getMealHistory = asyncHandler(async (req, res) => {
 
-  const result = await mealService.getMealHistory(req.user.Id);
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await mealService.getMealHistory(req.user.Id, page);
 
   res.status(200).json({
     result: "success",
-    message: result.length ? "Meal history fetched successfully" : "No meal history found",
-    data: result
+    message: result.data.length
+      ? "Meal history fetched successfully"
+      : "No meal history found",
+    data: result.data,
+    pagination: result.pagination
   });
 
 });

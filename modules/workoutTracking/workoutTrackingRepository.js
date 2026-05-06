@@ -341,53 +341,112 @@ const createSkippedSession = async (userId, planId, dayIndex) => {
 
 
 
-const getWorkoutHistory = async (userId) => {
+const getWorkoutHistory = async (userId, page = 1) => {
 
   const pool = await poolPromise;
 
-  const result = await pool.request()
+  const limit = 2;
+  const offset = (page - 1) * limit;
+
+  const sessionResult = await pool.request()
     .input("UserId", sql.Int, userId)
+    .input("offset", sql.Int, offset)
+    .input("limit", sql.Int, limit)
     .query(`
-      SELECT 
-        s.Id AS SessionId,
-        s.Status,
-        s.StartTime,
-        s.EndTime,
-
-        p.Name AS PlanName,
-
-        d.DayIndex,
-        d.Title AS DayTitle,
-
-        l.SetNumber,
-        l.Reps,
-        l.Weight,
-
-        ex.Id AS ExerciseId,
-        ex.Name AS ExerciseName
-
-      FROM UserWorkoutSessions s
-
-      LEFT JOIN UserWorkoutPlans p 
-        ON s.PlanId = p.Id
-
-      LEFT JOIN UserWorkoutPlanDays d 
-        ON d.UserWorkoutPlanId = s.PlanId
-        AND d.DayIndex = s.DayIndex
-
-      LEFT JOIN UserWorkoutSessionLogs l 
-        ON l.SessionId = s.Id
-
-      LEFT JOIN Exercises ex 
-        ON ex.Id = l.ExerciseId
-
-      WHERE s.UserId = @UserId
-        AND s.Status IN ('completed', 'skipped')
-
-      ORDER BY s.StartTime DESC, l.SetNumber
+      SELECT Id
+      FROM UserWorkoutSessions
+      WHERE UserId = @UserId
+        AND Status IN ('completed', 'skipped')
+      ORDER BY StartTime DESC
+      OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY
     `);
 
-  return result.recordset;
+  const sessionIds = sessionResult.recordset.map(s => s.Id);
+
+  if (!sessionIds.length) {
+    return {
+      data: [],
+      pagination: {
+        page,
+        limit,
+        total: 0,
+        totalPages: 0,
+        hasNextPage: false
+      }
+    };
+  }
+
+
+  const request = pool.request()
+    .input("UserId", sql.Int, userId);
+
+  const params = sessionIds.map((id, i) => {
+    request.input(`id${i}`, sql.Int, id);
+    return `@id${i}`;
+  });
+
+  const dataResult = await request.query(`
+    SELECT 
+      s.Id AS SessionId,
+      s.Status,
+      s.StartTime,
+      s.EndTime,
+
+      p.Name AS PlanName,
+
+      d.DayIndex,
+      d.Title AS DayTitle,
+
+      l.SetNumber,
+      l.Reps,
+      l.Weight,
+
+      ex.Id AS ExerciseId,
+      ex.Name AS ExerciseName
+
+    FROM UserWorkoutSessions s
+
+    LEFT JOIN UserWorkoutPlans p 
+      ON s.PlanId = p.Id
+
+    LEFT JOIN UserWorkoutPlanDays d 
+      ON d.UserWorkoutPlanId = s.PlanId
+      AND d.DayIndex = s.DayIndex
+
+    LEFT JOIN UserWorkoutSessionLogs l 
+      ON l.SessionId = s.Id
+
+    LEFT JOIN Exercises ex 
+      ON ex.Id = l.ExerciseId
+
+    WHERE s.Id IN (${params.join(",")})
+
+    ORDER BY s.StartTime DESC, l.SetNumber
+  `);
+
+
+  const countResult = await pool.request()
+    .input("UserId", sql.Int, userId)
+    .query(`
+      SELECT COUNT(*) AS total
+      FROM UserWorkoutSessions
+      WHERE UserId = @UserId
+        AND Status IN ('completed', 'skipped')
+    `);
+
+  const total = countResult.recordset[0].total;
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    rows: dataResult.recordset,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages
+    }
+  };
 };
 
 

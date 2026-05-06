@@ -42,9 +42,10 @@ const createFullWorkoutTemplateSplit = async (data) => {
 
 
 
-const getAllTemplates = async () => {
+const getAllTemplates = async (page = 1) => {
 
-  const templates = await templateRepo.getAllTemplates();
+  const { data: templates, pagination } =
+    await templateRepo.getAllTemplatesFull(page);
 
   const result = [];
 
@@ -82,7 +83,10 @@ const getAllTemplates = async () => {
     });
   }
 
-  return result;
+  return {
+    data: result,
+    pagination
+  };
 };
 
 

@@ -26,10 +26,14 @@ const foodSchema = Joi.object({
   unit: Joi.string().default("g")
 });
 
-const getFoods = async () => {
+// const getFoods = async () => {
 
-  return await foodRepository.getFoods();
+//   return await foodRepository.getFoods();
 
+// };
+
+const getFoods = async (page) => {
+  return await foodRepository.getFoods(page);
 };
 
 

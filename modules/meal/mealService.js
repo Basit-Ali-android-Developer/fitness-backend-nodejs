@@ -504,17 +504,15 @@ const markMealDone = async (UserId, trackingId) => {
 
 
 
-const getMealHistory = async (userId) => {
+const getMealHistory = async (userId, page) => {
 
-  const meals = await mealRepository.getMealHistory(userId);
+  const result = await mealRepository.getMealHistory(userId, page);
 
-  if (!meals.length) return [];
-
-  const historyIds = meals.map(m => m.Id);
+  const historyIds = result.data.map(m => m.Id);
 
   const ingredients = await mealRepository.getMealHistoryIngredients(historyIds);
 
-  return meals.map(meal => ({
+  const enrichedData = result.data.map(meal => ({
     id: meal.Id,
     mealId: meal.MealId,
     name: meal.Name,
@@ -540,6 +538,11 @@ const getMealHistory = async (userId) => {
         fats: i.Fats
       }))
   }));
+
+  return {
+    data: enrichedData,
+    pagination: result.pagination
+  };
 };
 
 

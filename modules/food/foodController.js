@@ -5,18 +5,39 @@ const asyncHandler = require('../../utils/asyncHandler');
 
 
 
+// const getFoods = asyncHandler(async (req, res) => {
+
+//   const result = await foodService.getFoods();
+
+//   res.status(200).json({
+//     result: "success",
+//     message: result.length === 0 ? "No foods available" : "Foods fetched successfully",
+//     data: result
+//   });
+
+// });
+
+
 const getFoods = asyncHandler(async (req, res) => {
 
-  const result = await foodService.getFoods();
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await foodService.getFoods(page);
 
   res.status(200).json({
     result: "success",
-    message: result.length === 0 ? "No foods available" : "Foods fetched successfully",
-    data: result
+    message: result.data.length === 0 ? "No foods available" : "Foods fetched successfully",
+    data: result.data,
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: result.totalPages,
+      hasNextPage: result.hasNextPage
+    }
   });
 
 });
-
 
 
 

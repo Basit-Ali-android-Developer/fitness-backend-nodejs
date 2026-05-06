@@ -293,14 +293,13 @@ const skipWorkout = async (userId) => {
 
 
 
-const getWorkoutHistory = async (userId) => {
+const getWorkoutHistory = async (userId, page = 1) => {
 
-  const rows = await workoutTrackingRepo.getWorkoutHistory(userId);
+  const { rows, pagination } = await workoutTrackingRepo.getWorkoutHistory(userId, page);
 
   const sessionsMap = new Map();
 
   for (const row of rows) {
-
 
     if (!sessionsMap.has(row.SessionId)) {
       sessionsMap.set(row.SessionId, {
@@ -319,7 +318,6 @@ const getWorkoutHistory = async (userId) => {
 
     const session = sessionsMap.get(row.SessionId);
 
-
     if (row.ExerciseId) {
 
       if (!session.exercisesMap.has(row.ExerciseId)) {
@@ -332,7 +330,6 @@ const getWorkoutHistory = async (userId) => {
 
       const exercise = session.exercisesMap.get(row.ExerciseId);
 
-
       if (row.SetNumber !== null && row.SetNumber !== undefined) {
         exercise.sets.push({
           setNumber: row.SetNumber,
@@ -343,7 +340,7 @@ const getWorkoutHistory = async (userId) => {
     }
   }
 
-  const history = Array.from(sessionsMap.values()).map(session => ({
+  const data = Array.from(sessionsMap.values()).map(session => ({
     sessionId: session.sessionId,
     status: session.status,
     startTime: session.startTime,
@@ -353,7 +350,7 @@ const getWorkoutHistory = async (userId) => {
     exercises: Array.from(session.exercisesMap.values())
   }));
 
-  return history;
+  return { data, pagination };
 };
 
 

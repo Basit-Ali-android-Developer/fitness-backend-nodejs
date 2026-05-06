@@ -22,14 +22,16 @@ const createFullWorkoutTemplateSplit = asyncHandler(async (req, res) => {
 
 const getAllTemplates = asyncHandler(async (req, res) => {
 
-  const result = await templateService.getAllTemplates();
+  const page = parseInt(req.query.page) || 1;
+
+  const result = await templateService.getAllTemplates(page);
 
   res.status(200).json({
     success: true,
     message: "Workout templates fetched successfully",
-    data: result
+    data: result.data,
+    pagination: result.pagination
   });
-
 });
 
 
