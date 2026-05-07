@@ -2,6 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const errorMiddleware = require('./middleware/errorMiddleware');
 
+const requestLogger = require('./middleware/requestLoggerMiddleware');
+
+
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -22,6 +25,7 @@ const workoutTrackingRoutes = require('./modules/workoutTracking/workoutTracking
 const app = express();
 
 
+
 app.use(helmet());
 app.use(cors());
 
@@ -32,6 +36,8 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.use(bodyParser.json());
+
+app.use(requestLogger);
 
 
 
@@ -49,6 +55,7 @@ app.use('/api/workoutTracking', workoutTrackingRoutes);
 
 require('./cron/mealCron');
 app.use(errorMiddleware);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

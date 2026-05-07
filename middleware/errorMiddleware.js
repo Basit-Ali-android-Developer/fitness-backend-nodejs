@@ -1,4 +1,7 @@
+const logger = require("../utils/logger/logger");
+
 const errorMiddleware = (err, req, res, next) => {
+   logger.error(`${err.message} - ${err.stack}`);
   console.error(err); // log for debugging
 
   const statusCode = err.statusCode || 500;
