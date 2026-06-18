@@ -1,12 +1,10 @@
-require('dotenv').config();
-
-const jwt = require('jsonwebtoken');
-const userRepository = require('../modules/user/userRepository');
-const AppError = require('../utils/AppError'); // adjust path
+import 'dotenv/config';
+import jwt from 'jsonwebtoken';
+import userRepository from '../modules/user/userRepository.js';
+import AppError from '../utils/AppError.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
-
-const asyncHandler = require('../utils/asyncHandler');
 
 const authMiddleware = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -42,17 +40,12 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
     throw new AppError("Unauthorized: User not found", 401);
   }
 
-   
   if (Number(user.IsDeleted) === 1) {
     throw new AppError("Account is deactivated", 401);
-    console.log(" BLOCKING: User is deleted");
   }
 
   req.user = user;
-
   next();
 });
 
-
-
-module.exports = authMiddleware;
+export default authMiddleware;

@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 
-const authMiddleware = require('../../middleware/authMiddleware');
+import authMiddleware from '../../middleware/authMiddleware.js';
 
-const { getNextWorkout,
+import { getNextWorkout,
         startWorkout,
         logSet,
         getCurrentSessionDetails,
@@ -11,7 +11,7 @@ const { getNextWorkout,
         skipWorkout,
         getWorkoutHistory
        
-    } = require('./workoutTrackingController');  
+    } from './workoutTrackingController.js';  
 
 
 
@@ -31,4 +31,4 @@ router.post('/skipWorkout', authMiddleware, skipWorkout);
 router.get('/getWorkoutHistory', authMiddleware, getWorkoutHistory);
 
 
-module.exports = router;
+export default router;

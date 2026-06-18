@@ -1,5 +1,5 @@
-const asyncHandler = require('../../utils/asyncHandler');
-const workoutTrackingService = require('./workoutTrackingService');
+import asyncHandler from '../../utils/asyncHandler.js';
+import workoutTrackingService from './workoutTrackingService.js';
 
 
 
@@ -116,7 +116,7 @@ const getWorkoutHistory = asyncHandler(async (req, res) => {
 
 
 
-module.exports = {
+export {
   getNextWorkout,
   startWorkout,
   logSet,

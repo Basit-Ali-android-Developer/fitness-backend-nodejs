@@ -1,31 +1,18 @@
-const asyncHandler = require('../../utils/asyncHandler');
-const workoutPlanService = require('./workoutPlanService');
-
-
-
-
-
+import asyncHandler from '../../utils/asyncHandler.js';
+import workoutPlanService from './workoutPlanService.js';
 
 const createWorkoutPlan = asyncHandler(async (req, res) => {
-
-  const result = await workoutPlanService.createWorkoutPlan(req.user.Id,req.body);
+  const result = await workoutPlanService.createWorkoutPlan(req.user.Id, req.body);
 
   res.status(200).json({
     success: true,
     message: "Workout plan created successfully",
     data: result
   });
-
 });
 
-
-
-
-
 const getUserWorkoutPlans = asyncHandler(async (req, res) => {
-
   const page = parseInt(req.query.page) || 1;
-
   const result = await workoutPlanService.getUserWorkoutPlans(
     req.user.Id,
     page
@@ -39,11 +26,7 @@ const getUserWorkoutPlans = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
 const updateWorkoutPlan = asyncHandler(async (req, res) => {
-
   const result = await workoutPlanService.updateWorkoutPlan(
     req.user.Id,
     req.params.id,
@@ -55,14 +38,9 @@ const updateWorkoutPlan = asyncHandler(async (req, res) => {
     message: "Workout plan updated successfully",
     data: result
   });
-
 });
 
-
-
-
 const getActiveWorkoutPlan = asyncHandler(async (req, res) => {
-
   const result = await workoutPlanService.getActiveWorkoutPlan(req.user.Id);
 
   res.status(200).json({
@@ -70,13 +48,9 @@ const getActiveWorkoutPlan = asyncHandler(async (req, res) => {
     message: "Active workout plan fetched successfully",
     data: result
   });
-
 });
 
-
-
 const activateWorkoutPlan = asyncHandler(async (req, res) => {
-
   const result = await workoutPlanService.activateWorkoutPlan(
     req.user.Id,
     req.params.id
@@ -87,14 +61,9 @@ const activateWorkoutPlan = asyncHandler(async (req, res) => {
     message: result.message || "Workout plan activated successfully",
     data: result
   });
-
 });
 
-
-
-
 const deleteWorkoutPlan = asyncHandler(async (req, res) => {
-
   const result = await workoutPlanService.deleteWorkoutPlan(
     req.user.Id,
     req.params.id
@@ -105,11 +74,9 @@ const deleteWorkoutPlan = asyncHandler(async (req, res) => {
     message: "Workout plan deleted successfully",
     data: result
   });
-
 });
 
-
-module.exports = {
+export {
   createWorkoutPlan,
   getUserWorkoutPlans,
   updateWorkoutPlan,

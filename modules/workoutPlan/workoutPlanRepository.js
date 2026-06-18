@@ -1,13 +1,6 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
-
-
-
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 const deactivateUserPlans = async (userId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -19,11 +12,7 @@ const deactivateUserPlans = async (userId) => {
     `);
 };
 
-
-
-
 const createPlan = async (userId, data) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -39,18 +28,13 @@ const createPlan = async (userId, data) => {
       (UserId, Name, Goal, Level, DaysCount, CurrentDayIndex, IsActive, Description)
       VALUES
       (@UserId, @Name, @Goal, @Level, @DaysCount, @CurrentDayIndex, 1, @Description);
-
       SELECT SCOPE_IDENTITY() AS Id;
     `);
 
   return result.recordset[0].Id;
 };
 
-
-
-
 const createDay = async ({ planId, dayIndex, title }) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -62,19 +46,13 @@ const createDay = async ({ planId, dayIndex, title }) => {
       (UserWorkoutPlanId, DayIndex, Title)
       VALUES
       (@PlanId, @DayIndex, @Title);
-
       SELECT SCOPE_IDENTITY() AS Id;
     `);
 
   return result.recordset[0].Id;
 };
 
-
-
-
-
 const createExercise = async (data) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -92,12 +70,7 @@ const createExercise = async (data) => {
     `);
 };
 
-
-//   get worksout for user
-
-
 const getUserPlans = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -120,10 +93,7 @@ const getUserPlans = async (userId) => {
   return result.recordset;
 };
 
-
-
 const getPlanDays = async (planId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -141,10 +111,7 @@ const getPlanDays = async (planId) => {
   return result.recordset;
 };
 
-
-
 const getDayExercises = async (dayId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -165,15 +132,11 @@ const getDayExercises = async (dayId) => {
   return result.recordset;
 };
 
-
-
 const getUserPlansAll = async (userId, page = 1) => {
-
   const pool = await poolPromise;
 
   const limit = 5;
   const offset = (page - 1) * limit;
-
 
   const dataResult = await pool.request()
     .input("UserId", sql.Int, userId)
@@ -195,7 +158,6 @@ const getUserPlansAll = async (userId, page = 1) => {
       OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;
     `);
 
-  
   const countResult = await pool.request()
     .input("UserId", sql.Int, userId)
     .query(`
@@ -219,13 +181,7 @@ const getUserPlansAll = async (userId, page = 1) => {
   };
 };
 
-//  update plan
-
-
-
-
 const getPlanById = async (planId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -239,12 +195,7 @@ const getPlanById = async (planId) => {
   return result.recordset[0];
 };
 
-
-
-
-
 const updatePlan = async (data) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -267,10 +218,7 @@ const updatePlan = async (data) => {
     `);
 };
 
-
-
 const deletePlanDays = async (planId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -281,10 +229,7 @@ const deletePlanDays = async (planId) => {
     `);
 };
 
-
-
 const getActivePlanByUser = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -306,14 +251,7 @@ const getActivePlanByUser = async (userId) => {
   return result.recordset[0]; 
 };
 
-
-
-//  activate
-
-
-
 const activatePlanForUser = async (userId, planId) => {
-
   const pool = await poolPromise;
 
   try {
@@ -331,23 +269,15 @@ const activatePlanForUser = async (userId, planId) => {
           UpdatedAt = GETDATE()
         WHERE UserId = @UserId
       `);
-
   } catch (err) {
     if (err.number === 2601 || err.number === 2627) {
-      throw new AppError("Only one active plan is allowed", 400);
+      throw new Error("Only one active plan is allowed");
     }
     throw err;
   }
 };
 
-
-
-
-//  delete api 
-
-
 const deletePlanExercises = async (planId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -361,9 +291,7 @@ const deletePlanExercises = async (planId) => {
     `);
 };
 
-
 const deletePlan = async (planId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -374,10 +302,7 @@ const deletePlan = async (planId) => {
     `);
 };
 
-
-
 const getAnotherUserPlan = async (userId, excludePlanId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -393,38 +318,21 @@ const getAnotherUserPlan = async (userId, excludePlanId) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
-
-
-module.exports = {
+export default {
   deactivateUserPlans,
   createPlan,
   createDay,
   createExercise,
-
   getUserPlans,
   getPlanDays,
   getDayExercises,
-
   getPlanById,
   updatePlan,
   deletePlanDays,
-
- getActivePlanByUser,
-
-
+  getActivePlanByUser,
   activatePlanForUser,
-  
   deletePlanExercises,
   deletePlan,
   getAnotherUserPlan,
-
   getUserPlansAll
-
-
-
 };

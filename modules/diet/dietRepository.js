@@ -1,11 +1,7 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 const createOrUpdateDietPlan = async (data) => {
   const pool = await poolPromise;
-
 
   const existing = await pool.request()
     .input('UserId', sql.Int, data.userId)
@@ -26,7 +22,6 @@ const createOrUpdateDietPlan = async (data) => {
   let result;
 
   if (existing.recordset.length > 0) {
-  
     result = await request.query(`
       UPDATE UserDietPlans
       SET GoalType = @GoalType,
@@ -43,7 +38,6 @@ const createOrUpdateDietPlan = async (data) => {
       WHERE UserId = @UserId
     `);
   } else {
-  
     result = await request.query(`
       INSERT INTO UserDietPlans
       (UserId, GoalType, TargetWeight, BMR, MaintenanceCalories, TargetCalories, ActivityLevel, ProteinGrams, CarbsGrams, FatsGrams, CreatedAt, UpdatedAt)
@@ -56,13 +50,7 @@ const createOrUpdateDietPlan = async (data) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
 const getDietPlan = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -76,13 +64,7 @@ const getDietPlan = async (userId) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
 const deleteDietPlan = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -95,11 +77,7 @@ const deleteDietPlan = async (userId) => {
   return result.rowsAffected[0];
 };
 
-
-
-
-
-module.exports = {
+export default {
   createOrUpdateDietPlan,
   getDietPlan,
   deleteDietPlan

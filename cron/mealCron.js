@@ -1,5 +1,5 @@
-const cron = require("node-cron");
-const { runMealCron } = require("./mealCronTask");
+import cron from "node-cron";
+import { runMealCron } from "./mealCronTask.js";
 
 console.log(" FULL DAILY MEAL SYSTEM CRON LOADED");
 console.log("SERVER TIME:", new Date().toString());

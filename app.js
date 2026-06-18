@@ -4,7 +4,7 @@ import errorMiddleware from './middleware/errorMiddleware.js';
 import requestLogger from './middleware/requestLoggerMiddleware.js';
 import helmet from 'helmet';
 import cors from 'cors';
-import rateLimit from 'express-rate-limit';
+import { rateLimit } from 'express-rate-limit';
 
 import userRoutes from './modules/user/userRoutes.js';
 import dietRoutes from './modules/diet/dietRoutes.js';

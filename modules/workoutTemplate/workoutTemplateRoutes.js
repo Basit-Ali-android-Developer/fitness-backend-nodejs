@@ -1,15 +1,13 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const adminMiddleware = require('../../middleware/adminMiddleware');
-const { createFullWorkoutTemplateSplit,
-        getAllTemplates,
-        getTemplateById,
-        updateWorkoutTemplateSplit,
-        deleteWorkoutTemplate
-        
- } = require('./workoutTemplateController');
-
-
+import adminMiddleware from '../../middleware/adminMiddleware.js';
+import {
+  createFullWorkoutTemplateSplit,
+  getAllTemplates,
+  getTemplateById,
+  updateWorkoutTemplateSplit,
+  deleteWorkoutTemplate
+} from './workoutTemplateController.js';
 
 router.post('/createFullWorkoutTemplateSplit', adminMiddleware, createFullWorkoutTemplateSplit);
 router.get('/getAllTemplates', adminMiddleware, getAllTemplates);
@@ -17,6 +15,4 @@ router.get('/getTemplateById/:id', adminMiddleware, getTemplateById);
 router.put('/updateWorkoutTemplateSplit/:id', adminMiddleware, updateWorkoutTemplateSplit);
 router.delete('/deleteWorkoutTemplate/:id', adminMiddleware, deleteWorkoutTemplate);
 
-
-
-module.exports = router;
+export default router;

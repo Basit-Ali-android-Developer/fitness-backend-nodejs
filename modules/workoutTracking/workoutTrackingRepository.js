@@ -1,4 +1,4 @@
-const { sql, poolPromise } = require('../../db/connection');
+import { sql, poolPromise } from '../../db/connection.js';
 
 
 
@@ -452,7 +452,7 @@ const getWorkoutHistory = async (userId, page = 1) => {
 
 
 
-module.exports = {
+export default {
     getActivePlanByUser,
     getLastWorkoutSession,
     getPlanDay,
@@ -477,6 +477,4 @@ module.exports = {
     createSkippedSession,
 
     getWorkoutHistory
-    
-    
 };

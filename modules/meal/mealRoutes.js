@@ -1,9 +1,18 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { createMeal, getUserMeals, getMealById, updateMeal, deleteMeal, getTodayMeals, markMealDone, getMealHistory } = require('./mealController');
-const authMiddleware = require('../../middleware/authMiddleware');
+import { 
+  createMeal, 
+  getUserMeals, 
+  getMealById, 
+  updateMeal, 
+  deleteMeal, 
+  getTodayMeals, 
+  markMealDone, 
+  getMealHistory 
+} from './mealController.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
-// meal api for meal controller to controll data in backend
+// meal api for meal controller to control data in backend
 router.post('/createMeal', authMiddleware, createMeal);
 router.get('/getUserMeals', authMiddleware, getUserMeals);
 router.get('/getMealById/:id', authMiddleware, getMealById);
@@ -14,9 +23,4 @@ router.get('/getTodayMeals', authMiddleware, getTodayMeals);
 router.put("/markMealDone/:id", authMiddleware, markMealDone);
 router.get('/getMealHistory', authMiddleware, getMealHistory);
 
-
-
-
-
-
-module.exports = router;
+export default router;

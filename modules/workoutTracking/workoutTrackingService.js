@@ -1,5 +1,5 @@
-const workoutTrackingRepo = require('./workoutTrackingRepository');
-const AppError = require('../../utils/AppError');
+import workoutTrackingRepo from './workoutTrackingRepository.js';
+import AppError from '../../utils/AppError.js';
 
 
 
@@ -357,7 +357,7 @@ const getWorkoutHistory = async (userId, page = 1) => {
 
 
 
-module.exports = {
+export default {
      getNextWorkout,
      startWorkout,
      logSet,
@@ -365,5 +365,4 @@ module.exports = {
      completeWorkout,
      skipWorkout,
      getWorkoutHistory
-
 };

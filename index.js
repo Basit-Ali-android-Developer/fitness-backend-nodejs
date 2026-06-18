@@ -1,6 +1,4 @@
-// Load environment variables as early as possible
-import 'dotenv/config.js';
-
+import 'dotenv/config';
 import app from './app.js';
 import './cron/mealCron.js';
 

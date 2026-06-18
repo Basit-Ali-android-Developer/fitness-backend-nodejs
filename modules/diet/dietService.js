@@ -1,7 +1,6 @@
-const Joi = require('joi');
-const AppError = require('../../utils/AppError');
-const dietRepository = require('./dietRepository');
-
+import Joi from 'joi';
+import AppError from '../../utils/AppError.js';
+import dietRepository from './dietRepository.js';
 
 // Activity multipliers
 const activityMultipliers = {
@@ -11,10 +10,6 @@ const activityMultipliers = {
   Active: 1.725,
   "Very Active": 1.9
 };
-
-
-
-
 
 // validation schema
 const dietPlanSchema = Joi.object({
@@ -26,7 +21,6 @@ const dietPlanSchema = Joi.object({
   goal_type: Joi.string().valid('Lose', 'Gain', 'Maintain').required(),
   activity_level: Joi.string().valid('Sedentary', 'Light', 'Moderate', 'Active', 'Very Active').required()
 }).custom((value, helpers) => {
-
   const { weight, target_weight, goal_type } = value;
 
   if (goal_type === 'Lose' && target_weight >= weight) {
@@ -44,13 +38,8 @@ const dietPlanSchema = Joi.object({
   return value;
 });
 
-
-
-
-
 // -------- CREATE OR UPDATE --------
 const createOrUpdateDietPlan = async (userId, data) => {
-
   const { error, value } = dietPlanSchema.validate(data);
 
   if (error) {
@@ -79,7 +68,6 @@ const createOrUpdateDietPlan = async (userId, data) => {
   if (goal_type === 'Gain') targetCalories += 500;
 
   // -------- CORRECT MACROS (FIXED) --------
-
   let proteinPerKg;
 
   if (goal_type === 'Lose') {
@@ -106,13 +94,10 @@ const createOrUpdateDietPlan = async (userId, data) => {
     userId,
     goal_type,
     target_weight,
-
     bmr: Math.round(bmr),
     maintenanceCalories: Math.round(maintenanceCalories),
     targetCalories: Math.round(targetCalories),
-
     activity_level,
-
     proteinGrams: Math.round(proteinGrams),
     carbsGrams: Math.round(carbsGrams),
     fatsGrams: Math.round(fatsGrams)
@@ -121,13 +106,7 @@ const createOrUpdateDietPlan = async (userId, data) => {
   return await dietRepository.createOrUpdateDietPlan(finalData);
 };
 
-
-
-
-
-
 const getDietPlan = async (userId) => {
-
   const diet = await dietRepository.getDietPlan(userId);
 
   if (!diet) {
@@ -137,14 +116,7 @@ const getDietPlan = async (userId) => {
   return diet;
 };
 
-
-
-
-
-
-
 const deleteDietPlan = async (userId) => {
-
   const deleted = await dietRepository.deleteDietPlan(userId);
 
   if (deleted === 0) {
@@ -154,12 +126,7 @@ const deleteDietPlan = async (userId) => {
   return { message: "Diet plan deleted successfully" };
 };
 
-
-
-
-
-
-module.exports = {
+export default {
   createOrUpdateDietPlan,
   getDietPlan,
   deleteDietPlan

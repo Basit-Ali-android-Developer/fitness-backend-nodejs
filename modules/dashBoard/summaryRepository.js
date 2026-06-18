@@ -1,9 +1,6 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 const getUserDiet = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -17,12 +14,7 @@ const getUserDiet = async (userId) => {
   return result.recordset[0];
 };
 
-
-
-
-
 const getTodayConsumedTotals = async (userId, date) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -43,40 +35,7 @@ const getTodayConsumedTotals = async (userId, date) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
-
-
-
-// ======================================================
-// dashboard states
-// ======================================================
-
-
-// const getUserDiet = async (userId) => {
-
-//   const pool = await poolPromise;
-
-//   const result = await pool.request()
-//     .input("UserId", sql.Int, userId)
-//     .query(`
-//       SELECT TargetCalories
-//       FROM UserDietPlans
-//       WHERE UserId = @UserId
-//     `);
-
-//   return result.recordset[0];
-// };
-
-
-
-
-
 const getTodaySummary = async (userId, date) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -97,11 +56,7 @@ const getTodaySummary = async (userId, date) => {
   return result.recordset[0];
 };
 
-
-
-
 const getTodayMeals = async (userId, date) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -117,12 +72,7 @@ const getTodayMeals = async (userId, date) => {
   return result.recordset;
 };
 
-
-
-
-
 const getWeeklySummary = async (userId, start, end) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -144,11 +94,7 @@ const getWeeklySummary = async (userId, start, end) => {
   return result.recordset;
 };
 
-
-
-
 const getMonthlySummary = async (userId, start, end) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -168,17 +114,11 @@ const getMonthlySummary = async (userId, start, end) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
-
-module.exports = {
-    getUserDiet,
-    getTodayConsumedTotals,
-    getTodaySummary,
-    getTodayMeals,
-    getWeeklySummary,
-    getMonthlySummary
+export default {
+  getUserDiet,
+  getTodayConsumedTotals,
+  getTodaySummary,
+  getTodayMeals,
+  getWeeklySummary,
+  getMonthlySummary
 };

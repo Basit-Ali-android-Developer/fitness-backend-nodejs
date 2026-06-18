@@ -1,10 +1,6 @@
-const Joi = require('joi');
-const foodRepository = require('./foodRepository');
-const AppError = require('../../utils/AppError');
-
-
-
-
+import Joi from 'joi';
+import foodRepository from './foodRepository.js';
+import AppError from '../../utils/AppError.js';
 
 const foodSchema = Joi.object({
   name: Joi.string().trim().min(2).required()
@@ -26,29 +22,16 @@ const foodSchema = Joi.object({
   unit: Joi.string().default("g")
 });
 
-// const getFoods = async () => {
-
-//   return await foodRepository.getFoods();
-
-// };
-
 const getFoods = async (page) => {
   return await foodRepository.getFoods(page);
 };
 
-
-
-
-
-
 const addFood = async (data) => {
-
   const { error, value } = foodSchema.validate(data);
 
   if (error) {
     throw new AppError(error.details[0].message.replace(/"/g, ''), 400);
   }
-
 
   if (
     value.calories === 0 &&
@@ -59,7 +42,6 @@ const addFood = async (data) => {
     throw new AppError("Food cannot have all zero nutritional values", 400);
   }
 
-  // ❌ duplicate check
   const existing = await foodRepository.findByName(value.name);
 
   if (existing) {
@@ -69,13 +51,7 @@ const addFood = async (data) => {
   return await foodRepository.createFood(value);
 };
 
-
-
-
-
-
 const updateFood = async (id, data) => {
-
   const foodId = parseInt(id);
 
   if (!foodId || isNaN(foodId)) {
@@ -94,7 +70,6 @@ const updateFood = async (id, data) => {
     throw new AppError("Food not found", 404);
   }
 
-  // duplicate check (exclude self)
   const duplicate = await foodRepository.findByNameExcludeId(value.name, foodId);
 
   if (duplicate) {
@@ -104,13 +79,7 @@ const updateFood = async (id, data) => {
   return await foodRepository.updateFood(foodId, value);
 };
 
-
-
-
-
-
 const deleteFood = async (id) => {
-
   const foodId = parseInt(id);
 
   if (!foodId || isNaN(foodId)) {
@@ -132,12 +101,7 @@ const deleteFood = async (id) => {
   return { message: "Food deleted successfully" };
 };
 
-
-
-
-
 const activateFood = async (id) => {
-
   const foodId = parseInt(id);
 
   if (!foodId || isNaN(foodId)) {
@@ -159,12 +123,7 @@ const activateFood = async (id) => {
   return { message: "Food activated successfully" };
 };
 
-
-
-
-
-
-module.exports = {
+export default {
   getFoods,
   addFood,
   updateFood,

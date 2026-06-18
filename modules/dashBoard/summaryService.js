@@ -1,13 +1,8 @@
-const Joi = require('joi');
-const AppError = require('../../utils/AppError');
-const summaryRepository = require('./summaryRepository');
-
-
-
-
+import Joi from 'joi';
+import AppError from '../../utils/AppError.js';
+import summaryRepository from './summaryRepository.js';
 
 const getTodaySummary = async (userId) => {
-
   //  GET DIET
   const diet = await summaryRepository.getUserDiet(userId);
 
@@ -29,9 +24,7 @@ const getTodaySummary = async (userId) => {
 
   //  CALCULATIONS
   const target = diet.TargetCalories;
-
   const remaining = target - calories;
-
   const progress = target > 0
     ? Math.round((calories / target) * 100)
     : 0;
@@ -51,12 +44,7 @@ const getTodaySummary = async (userId) => {
   };
 };
 
-
-
-
-
 const getDashboardStats = async (userId) => {
-
   // ======================================================
   //  DATES SETUP
   // ======================================================
@@ -90,7 +78,6 @@ const getDashboardStats = async (userId) => {
   const fats = todayData.Fats || 0;
 
   const remaining = targetCalories - consumedCalories;
-
   const progress = targetCalories > 0
     ? Math.round((consumedCalories / targetCalories) * 100)
     : 0;
@@ -177,30 +164,23 @@ const getDashboardStats = async (userId) => {
       },
       macros: { protein, carbs, fats }
     },
-
     mealProgress: {
       total: totalMeals,
       completed: completedMeals,
       meals
     },
-
     weekly: {
       averageCalories: avgCalories,
       bestDay,
       days: weeklyData
     },
-
     monthly: {
       totalCalories: totalCaloriesMonth,
       avgPerDay,
       consistency
     },
-
     alerts
   };
 };
 
-
-
-
-module.exports = {getTodaySummary , getDashboardStats};
+export default { getTodaySummary, getDashboardStats };

@@ -1,12 +1,11 @@
-const jwt = require('jsonwebtoken');
-const userRepository = require('../modules/user/userRepository');
-const AppError = require('../utils/AppError');
-const asyncHandler = require('../utils/asyncHandler');
+import jwt from 'jsonwebtoken';
+import userRepository from '../modules/user/userRepository.js';
+import AppError from '../utils/AppError.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const adminMiddleware = asyncHandler(async (req, res, next) => {
-
   console.log("ADMIN MIDDLEWARE START");
 
   const authHeader = req.headers.authorization;
@@ -32,20 +31,16 @@ const adminMiddleware = asyncHandler(async (req, res, next) => {
 
   console.log(" USER FROM DB:", user);
 
-
   if (user.UserType !== 'Admin') {
     throw new AppError("Access denied. Admin only", 403);
   }
-
 
   if (Number(user.IsDeleted) === 1) {
     throw new AppError("Admin Account is deactivated", 401);
   }
 
   req.user = user;
-
   next();
 });
 
-
-module.exports = adminMiddleware;
+export default adminMiddleware;

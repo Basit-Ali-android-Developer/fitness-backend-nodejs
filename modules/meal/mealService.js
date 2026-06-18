@@ -1,7 +1,6 @@
-const Joi = require('joi');
-const AppError = require('../../utils/AppError');
-const mealRepository = require('./mealRepository');
-
+import Joi from 'joi';
+import AppError from '../../utils/AppError.js';
+import mealRepository from './mealRepository.js';
 
 // ==========================
 // VALIDATION SCHEMA
@@ -19,12 +18,10 @@ const mealSchema = Joi.object({
   ).min(1).required()
 });
 
-
 // ==========================
 // CREATE MEAL
 // ==========================
 const createMeal = async (UserId, data) => {
-
   const { error, value } = mealSchema.validate(data);
   if (error) throw new AppError(error.details[0].message, 400);
 
@@ -60,7 +57,6 @@ const createMeal = async (UserId, data) => {
     let totalFats = 0;
 
     const mealIngredients = foods.map(f => {
-
       const food = dbFoods.find(d => d.Id === f.foodId);
 
       const item = {
@@ -136,7 +132,6 @@ const createMeal = async (UserId, data) => {
   } catch (err) {
     await transaction.rollback();
 
-    // EXTRA SAFETY (if DB constraint still hits)
     if (err.number === 2627 || err.number === 2601) {
       throw new AppError("Meal name or time already exists", 409);
     }
@@ -145,12 +140,10 @@ const createMeal = async (UserId, data) => {
   }
 };
 
-
 // ==========================
 // GET ALL MEALS
 // ==========================
 const getUserMeals = async (UserId) => {
-
   const meals = await mealRepository.getUserMeals(UserId);
 
   if (!meals.length) return [];
@@ -181,20 +174,17 @@ const getUserMeals = async (UserId) => {
   }));
 };
 
-
 // ==========================
 // GET SINGLE MEAL
 // ==========================
 const getMealById = async (UserId, mealId) => {
-
   if (!mealId) throw new AppError("Invalid meal id", 400);
 
- const meal = await mealRepository.getMealByIdTx(UserId, mealId);
+  const meal = await mealRepository.getMealByIdTx(UserId, mealId);
 
   if (!meal) throw new AppError("Meal not found", 404);
 
-  const ingredients =
-    await mealRepository.getMealIngredientsByMealId(mealId);
+  const ingredients = await mealRepository.getMealIngredientsByMealId(mealId);
 
   return {
     id: meal.Id,
@@ -216,12 +206,10 @@ const getMealById = async (UserId, mealId) => {
   };
 };
 
-
 // ==========================
 // UPDATE MEAL
 // ==========================
 const updateMeal = async (UserId, mealId, data) => {
-
   const { error, value } = mealSchema.validate(data);
   if (error) throw new AppError(error.details[0].message, 400);
 
@@ -267,7 +255,6 @@ const updateMeal = async (UserId, mealId, data) => {
     let totalFats = 0;
 
     const mealIngredients = foods.map(f => {
-
       const food = dbFoods.find(d => d.Id === f.foodId);
 
       const item = {
@@ -308,39 +295,34 @@ const updateMeal = async (UserId, mealId, data) => {
       mealIngredients
     );
 
-
     //  CHECK TRACKING STATUS
-const tracking = await mealRepository.getMealTrackingStatus(
-  transaction,
-  UserId,
-  mealId
-);
+    const tracking = await mealRepository.getMealTrackingStatus(
+      transaction,
+      UserId,
+      mealId
+    );
 
-const canUpdateTracking = tracking && !tracking.IsDone;
+    const canUpdateTracking = tracking && !tracking.IsDone;
 
+    if (canUpdateTracking) {
+      //  SYNC TRACKING
+      await mealRepository.syncMealTracking(transaction, UserId, mealId, {
+        name,
+        mealTime,
+        calories: totalCalories,
+        protein: totalProtein,
+        carbs: totalCarbs,
+        fats: totalFats
+      });
 
-if (canUpdateTracking) {
+      await mealRepository.deleteTrackingIngredients(transaction, UserId, mealId);
 
-    //  SYNC TRACKING
-    await mealRepository.syncMealTracking(transaction, UserId, mealId, {
-      name,
-      mealTime,
-      calories: totalCalories,
-      protein: totalProtein,
-      carbs: totalCarbs,
-      fats: totalFats
-    });
-
-
-    await mealRepository.deleteTrackingIngredients(transaction, UserId, mealId);
-
-await mealRepository.insertTrackingIngredientsFromMeal(
-  transaction,
-  UserId,
-  mealId
-);
-
-}
+      await mealRepository.insertTrackingIngredientsFromMeal(
+        transaction,
+        UserId,
+        mealId
+      );
+    }
 
     await transaction.commit();
 
@@ -369,13 +351,7 @@ await mealRepository.insertTrackingIngredientsFromMeal(
   }
 };
 
-
-
-
-
-
 const deleteMeal = async (UserId, mealId) => {
-
   if (!mealId) throw new AppError("Invalid meal id", 400);
 
   const transaction = await mealRepository.createTransaction();
@@ -407,7 +383,7 @@ const deleteMeal = async (UserId, mealId) => {
       await mealRepository.deleteMealTracking(transaction, UserId, mealId);
     }
 
-    //  DELETE MEAL (CASCADE deletes MealIngredients automatically)
+    //  DELETE MEAL
     await mealRepository.deleteMeal(transaction, mealId, UserId);
 
     await transaction.commit();
@@ -424,19 +400,12 @@ const deleteMeal = async (UserId, mealId) => {
   }
 };
 
-
-
-
-
 const getTodayMeals = async (UserId) => {
-
   const meals = await mealRepository.getTodayMeals(UserId);
 
   if (!meals.length) return [];
 
- 
   const trackingIds = meals.map(m => m.Id);
-
   const ingredients = await mealRepository.getTodayMealIngredients(trackingIds);
 
   return meals.map(meal => ({
@@ -449,9 +418,8 @@ const getTodayMeals = async (UserId) => {
     totalFats: meal.TotalFats,
     date: meal.Date,
     isDone: meal.IsDone,
-
     ingredients: ingredients
-      .filter(i => i.MealTrackingId === meal.Id) // FIXED
+      .filter(i => i.MealTrackingId === meal.Id)
       .map(i => ({
         foodId: i.FoodId,
         name: i.Name,
@@ -465,15 +433,7 @@ const getTodayMeals = async (UserId) => {
   }));
 };
 
-
-
-// ==========================
-// done meal 
-// ==========================
-
-
 const markMealDone = async (UserId, trackingId) => {
-
   if (!trackingId) {
     throw new AppError("Invalid tracking id", 400);
   }
@@ -497,19 +457,9 @@ const markMealDone = async (UserId, trackingId) => {
   return { message: "Meal marked as done successfully" };
 };
 
-
-// ==========================
-//  MEALs history 
-// ==========================
-
-
-
 const getMealHistory = async (userId, page) => {
-
   const result = await mealRepository.getMealHistory(userId, page);
-
   const historyIds = result.data.map(m => m.Id);
-
   const ingredients = await mealRepository.getMealHistoryIngredients(historyIds);
 
   const enrichedData = result.data.map(meal => ({
@@ -524,7 +474,6 @@ const getMealHistory = async (userId, page) => {
     date: meal.Date,
     isDone: meal.IsDone,
     createdAt: meal.CreatedAt,
-
     ingredients: ingredients
       .filter(i => i.MealHistoryId === meal.Id)
       .map(i => ({
@@ -545,10 +494,7 @@ const getMealHistory = async (userId, page) => {
   };
 };
 
-
-
-
-module.exports = {
+export default {
   createMeal,
   getUserMeals,
   getMealById,

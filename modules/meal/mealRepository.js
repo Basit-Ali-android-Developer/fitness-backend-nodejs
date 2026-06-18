@@ -1,5 +1,4 @@
-const { sql, poolPromise } = require('../../db/connection');
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 // ======================================================
 // TRANSACTION
@@ -9,13 +8,10 @@ const createTransaction = async () => {
   return new sql.Transaction(pool);
 };
 
-
-
 // ======================================================
 // FOODS
 // ======================================================
 const getFoodsByIds = async (transaction, ids) => {
-
   const request = new sql.Request(transaction);
 
   const params = ids.map((id, i) => {
@@ -31,13 +27,10 @@ const getFoodsByIds = async (transaction, ids) => {
   return result.recordset;
 };
 
-
-
 // ======================================================
 // MEAL CREATE
 // ======================================================
 const createMeal = async (transaction, data) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, data.userId)
     .input("Name", sql.NVarChar, data.name)
@@ -61,13 +54,10 @@ const createMeal = async (transaction, data) => {
   return result.recordset[0];
 };
 
-
-
 // ======================================================
 // MEAL TRACKING CREATE
 // ======================================================
 const createMealTracking = async (transaction, data) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, data.userId)
     .input("MealId", sql.Int, data.mealId)
@@ -96,15 +86,11 @@ const createMealTracking = async (transaction, data) => {
   return result.recordset[0];
 };
 
-
-
 // ======================================================
 // INGREDIENTS INSERT
 // ======================================================
 const insertMealIngredients = async (transaction, mealId, ingredients) => {
-
   for (const ing of ingredients) {
-
     await new sql.Request(transaction)
       .input("MealId", sql.Int, mealId)
       .input("FoodId", sql.Int, ing.foodId)
@@ -130,15 +116,11 @@ const insertMealIngredients = async (transaction, mealId, ingredients) => {
   }
 };
 
-
-
 // ======================================================
 // TRACKING INGREDIENTS
 // ======================================================
 const insertTrackingIngredients = async (transaction, trackingId, ingredients) => {
-
   for (const ing of ingredients) {
-
     await new sql.Request(transaction)
       .input("MealTrackingId", sql.Int, trackingId)
       .input("FoodId", sql.Int, ing.foodId)
@@ -164,13 +146,10 @@ const insertTrackingIngredients = async (transaction, trackingId, ingredients) =
   }
 };
 
-
-
 // ======================================================
 // CHECK DUPLICATES (CREATE)
 // ======================================================
 const checkMealNameExists = async (transaction, userId, name) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("Name", sql.NVarChar, name)
@@ -182,10 +161,7 @@ const checkMealNameExists = async (transaction, userId, name) => {
   return result.recordset.length > 0;
 };
 
-
-
 const checkMealTimeExists = async (transaction, userId, mealTime) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("MealTime", sql.NVarChar, mealTime)
@@ -197,13 +173,10 @@ const checkMealTimeExists = async (transaction, userId, mealTime) => {
   return result.recordset.length > 0;
 };
 
-
-
 // ======================================================
 // GET USER MEALS
 // ======================================================
 const getUserMeals = async (userId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -217,13 +190,10 @@ const getUserMeals = async (userId) => {
   return result.recordset;
 };
 
-
-
 // ======================================================
 // GET INGREDIENTS
 // ======================================================
 const getMealIngredients = async (mealIds) => {
-
   if (!mealIds.length) return [];
 
   const pool = await poolPromise;
@@ -243,10 +213,7 @@ const getMealIngredients = async (mealIds) => {
   return result.recordset;
 };
 
-
-
 const getMealIngredientsByMealId = async (mealId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -260,13 +227,10 @@ const getMealIngredientsByMealId = async (mealId) => {
   return result.recordset;
 };
 
-
-
 // ======================================================
-// GET MEAL BY ID (FIXED — SINGLE VERSION ONLY)
+// GET MEAL BY ID
 // ======================================================
 const getMealById = async (transaction, mealId, userId) => {
-
   const result = await new sql.Request(transaction)
     .input("MealId", sql.Int, mealId)
     .input("UserId", sql.Int, userId)
@@ -279,10 +243,7 @@ const getMealById = async (transaction, mealId, userId) => {
   return result.recordset[0];
 };
 
-
-
-const getMealByIdTx  = async (userId, mealId) => {
-
+const getMealByIdTx = async (userId, mealId) => {
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -297,12 +258,10 @@ const getMealByIdTx  = async (userId, mealId) => {
   return result.recordset[0];
 };
 
-
 // ======================================================
-// UPDATE DUPLICATE CHECK (FIXED LOGIC)
+// UPDATE DUPLICATE CHECK
 // ======================================================
 const checkDuplicateMeal = async (transaction, userId, mealId, name, mealTime) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("MealId", sql.Int, mealId)
@@ -318,13 +277,10 @@ const checkDuplicateMeal = async (transaction, userId, mealId, name, mealTime) =
   return result.recordset.length > 0;
 };
 
-
-
 // ======================================================
 // UPDATE MEAL
 // ======================================================
 const updateMeal = async (transaction, userId, mealId, data) => {
-
   return await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("MealId", sql.Int, mealId)
@@ -347,13 +303,10 @@ const updateMeal = async (transaction, userId, mealId, data) => {
     `);
 };
 
-
-
 // ======================================================
 // DELETE INGREDIENTS
 // ======================================================
 const deleteMealIngredients = async (transaction, mealId) => {
-
   return await new sql.Request(transaction)
     .input("MealId", sql.Int, mealId)
     .query(`
@@ -362,13 +315,10 @@ const deleteMealIngredients = async (transaction, mealId) => {
     `);
 };
 
-
-
 // ======================================================
 // TRACKING SYNC
 // ======================================================
 const syncMealTracking = async (transaction, userId, mealId, data) => {
-
   return await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("MealId", sql.Int, mealId)
@@ -390,11 +340,7 @@ const syncMealTracking = async (transaction, userId, mealId, data) => {
     `);
 };
 
-
-
-
 const deleteTrackingIngredients = async (transaction, userId, mealId) => {
-
   await new sql.Request(transaction)
     .input("MealId", sql.Int, mealId)
     .input("UserId", sql.Int, userId)
@@ -407,11 +353,7 @@ const deleteTrackingIngredients = async (transaction, userId, mealId) => {
     `);
 };
 
-
-
-
 const insertTrackingIngredientsFromMeal = async (transaction, userId, mealId) => {
-
   await new sql.Request(transaction)
     .input("MealId", sql.Int, mealId)
     .input("UserId", sql.Int, userId)
@@ -435,11 +377,7 @@ const insertTrackingIngredientsFromMeal = async (transaction, userId, mealId) =>
     `);
 };
 
-
-
-
 const getMealTrackingStatus = async (transaction, userId, mealId) => {
-
   const result = await new sql.Request(transaction)
     .input("UserId", sql.Int, userId)
     .input("MealId", sql.Int, mealId)
@@ -449,12 +387,8 @@ const getMealTrackingStatus = async (transaction, userId, mealId) => {
       WHERE UserId = @UserId AND MealId = @MealId
     `);
 
-  return result.recordset[0]; // can be undefined
+  return result.recordset[0];
 };
-
-
-
-
 
 const getMealTracking = async (transaction, UserId, mealId) => {
   const result = await new sql.Request(transaction)
@@ -469,9 +403,6 @@ const getMealTracking = async (transaction, UserId, mealId) => {
   return result.recordset[0];
 };
 
-
-
-
 const deleteMealTracking = async (transaction, UserId, mealId) => {
   await new sql.Request(transaction)
     .input("UserId", sql.Int, UserId)
@@ -481,8 +412,6 @@ const deleteMealTracking = async (transaction, UserId, mealId) => {
       WHERE UserId = @UserId AND MealId = @MealId
     `);
 };
-
-
 
 const deleteMeal = async (transaction, mealId, UserId) => {
   await new sql.Request(transaction)
@@ -497,11 +426,7 @@ const deleteMeal = async (transaction, mealId, UserId) => {
 // ======================================================
 // Get meals from tracking table
 // ======================================================
-
-
-
 const getTodayMeals = async (UserId) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -516,13 +441,7 @@ const getTodayMeals = async (UserId) => {
   return result.recordset;
 };
 
-
-
-
-
-
 const getTodayMealIngredients = async (trackingIds) => {
-
   if (!trackingIds.length) return [];
 
   const pool = await poolPromise;
@@ -543,12 +462,9 @@ const getTodayMealIngredients = async (trackingIds) => {
   return result.recordset;
 };
 
-
 // ======================================================
 // mark as done meal
 // ======================================================
-
-
 const getMealTrackingById = async (UserId, trackingId) => {
   const pool = await poolPromise;
 
@@ -564,8 +480,6 @@ const getMealTrackingById = async (UserId, trackingId) => {
 
   return result.recordset[0];
 };
-
-
 
 const markMealDone = async (UserId, trackingId) => {
   const pool = await poolPromise;
@@ -583,12 +497,7 @@ const markMealDone = async (UserId, trackingId) => {
   return result.rowsAffected[0];
 };
 
-
-
-
-
 const getMealHistory = async (userId, page = 1) => {
-
   const pool = await poolPromise;
 
   const limit = 10;
@@ -640,12 +549,7 @@ const getMealHistory = async (userId, page = 1) => {
   };
 };
 
-
-
-
-
 const getMealHistoryIngredients = async (historyIds) => {
-
   if (!historyIds.length) return [];
 
   const pool = await poolPromise;
@@ -666,60 +570,34 @@ const getMealHistoryIngredients = async (historyIds) => {
   return result.recordset;
 };
 
-
-
-
-module.exports = {
+export default {
   createTransaction,
-
   createMeal,
   createMealTracking,
-
   insertMealIngredients,
   insertTrackingIngredients,
-
   checkMealNameExists,
   checkMealTimeExists,
-
   getUserMeals,
   getMealIngredients,
   getMealIngredientsByMealId,
-
   getFoodsByIds,
-
   getMealById,
   getMealByIdTx,
-
   checkDuplicateMeal,
-
   updateMeal,
-
   deleteMealIngredients,
-
   syncMealTracking,
-
-  deleteTrackingIngredients ,
-
-  insertTrackingIngredientsFromMeal ,
-
+  deleteTrackingIngredients,
+  insertTrackingIngredientsFromMeal,
   getMealTrackingStatus,
-
-  getMealTracking ,
-
-  deleteMealTracking ,
-
-  deleteMeal ,
-
+  getMealTracking,
+  deleteMealTracking,
+  deleteMeal,
   getTodayMeals,
   getTodayMealIngredients,
-
-  getMealTrackingById ,
+  getMealTrackingById,
   markMealDone,
-
   getMealHistory,
   getMealHistoryIngredients
-
-  
-
-  
 };

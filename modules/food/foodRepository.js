@@ -1,20 +1,4 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
-
-
-// const getFoods = async () => {
-//   const pool = await poolPromise;
-
-//   const result = await pool.request().query(`
-//     SELECT Id, Name, Calories, Protein, Carbs, Fats, Unit
-//     FROM Foods
-//     WHERE IsActive = 1
-//     ORDER BY Name ASC
-//   `);
-
-//   return result.recordset;
-// };
+import { sql, poolPromise } from '../../db/connection.js';
 
 const getFoods = async (page = 1) => {
   const pool = await poolPromise;
@@ -55,10 +39,6 @@ const getFoods = async (page = 1) => {
   };
 };
 
-
-
-
-
 const findByName = async (name) => {
   const pool = await poolPromise;
 
@@ -68,11 +48,6 @@ const findByName = async (name) => {
 
   return result.recordset[0];
 };
-
-
-
-
-
 
 const findByNameExcludeId = async (name, id) => {
   const pool = await poolPromise;
@@ -87,11 +62,6 @@ const findByNameExcludeId = async (name, id) => {
 
   return result.recordset[0];
 };
-
-
-
-
-
 
 const createFood = async (data) => {
   const pool = await poolPromise;
@@ -111,11 +81,6 @@ const createFood = async (data) => {
     `);
 };
 
-
-
-
-
-
 const getById = async (id) => {
   const pool = await poolPromise;
 
@@ -125,11 +90,6 @@ const getById = async (id) => {
 
   return result.recordset[0];
 };
-
-
-
-
-
 
 const updateFood = async (id, data) => {
   const pool = await poolPromise;
@@ -158,11 +118,6 @@ const updateFood = async (id, data) => {
   return result.recordset[0];
 };
 
-
-
-
-
-
 const deleteFood = async (id) => {
   const pool = await poolPromise;
 
@@ -175,11 +130,6 @@ const deleteFood = async (id) => {
       WHERE Id = @id
     `);
 };
-
-
-
-
-
 
 const activateFood = async (id) => {
   const pool = await poolPromise;
@@ -194,12 +144,7 @@ const activateFood = async (id) => {
     `);
 };
 
-
-
-
-
-
-module.exports = {
+export default {
   getFoods,
   findByName,
   findByNameExcludeId,

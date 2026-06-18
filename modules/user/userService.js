@@ -1,24 +1,13 @@
-require('dotenv').config();
-
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const userRepository = require('./userRepository');
-const Joi = require('joi');
+import 'dotenv/config';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import userRepository from './userRepository.js';
+import Joi from 'joi';
+import AppError from '../../utils/AppError.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const AppError = require('../../utils/AppError');
-
-
-
-
-
-
-
-
 const signup = async (data) => {
-
-  
   const schema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().email().required(),
@@ -27,25 +16,18 @@ const signup = async (data) => {
 
   const { error, value } = schema.validate(data);
 
-
-   if (error) {
+  if (error) {
     throw new AppError(error.details[0].message.replace(/"/g, ''), 400);
   }
 
-
-  // check user
   const existingUser = await userRepository.findByEmail(value.email);
-
 
   if (existingUser) {
     throw new AppError("Email already exists", 409);
   }
 
-  // hash password
   const hashedPassword = await bcrypt.hash(value.password, 10);
 
-
-  // create user
   const user = await userRepository.createUser({
     ...value,
     password: hashedPassword,
@@ -56,37 +38,24 @@ const signup = async (data) => {
   return user;
 };
 
-
-
-
-
-
-
-
 const login = async (data) => {
-
   const { email, password } = data;
-
 
   if (!email || !password) {
     throw new AppError("Email and password are required", 400);
   }
 
-
   const user = await userRepository.findByEmail(email);
 
- 
   if (!user) {
     throw new AppError("Invalid credentials", 401);
   }
-
 
   const isMatch = await bcrypt.compare(password, user.Password);
 
   if (!isMatch) {
     throw new AppError("Invalid credentials", 401);
   }
-
 
   const token = jwt.sign(
     {
@@ -97,7 +66,6 @@ const login = async (data) => {
     JWT_SECRET,
     { expiresIn: "7d" }
   );
-
 
   const responseUser = {
     id: user.Id,
@@ -118,11 +86,6 @@ const login = async (data) => {
     token
   };
 };
-
-
-
-
-
 
 const updateProfileSchema = Joi.object({
   height: Joi.number().positive().required()
@@ -153,11 +116,7 @@ const updateProfileSchema = Joi.object({
     })
 });
 
-
-
-
 const updateProfile = async (user, data) => {
-
   const { error, value } = updateProfileSchema.validate(data, {
     abortEarly: true
   });
@@ -174,10 +133,6 @@ const updateProfile = async (user, data) => {
     isProfileComplete: 1
   });
 
-  // if (!updatedUser) {
-  //   throw new AppError("User not found or deleted", 404);
-  // }
-
   return {
     id: updatedUser.Id,
     name: updatedUser.Name,
@@ -193,16 +148,11 @@ const updateProfile = async (user, data) => {
   };
 };
 
-
-
-
-
 const getProfileById = async (id) => {
-
   const userId = parseInt(id);
 
   if (!userId || isNaN(userId)) {
-   throw new AppError("Invalid user ID", 404);
+    throw new AppError("Invalid user ID", 404);
   }
 
   const user = await userRepository.getFullUserById(userId);
@@ -228,16 +178,8 @@ const getProfileById = async (id) => {
   };
 };
 
-
-
-
-
-
 const getUserProfileWithDiet = async (userId) => {
-
   const user = await userRepository.getById(userId);
-  
-
   const dietPlan = await userRepository.getDietByUserId(userId);
 
   return {
@@ -255,24 +197,16 @@ const getUserProfileWithDiet = async (userId) => {
   };
 };
 
-
-
-
-
-
-
-
 const deleteUser = async (userId) => {
-
   const user = await userRepository.getById(userId);
 
   if (!user) {
-  throw new AppError("User not found", 404);
-   }
+    throw new AppError("User not found", 404);
+  }
 
-if (user.IsDeleted === true) {
-  throw new AppError("User already deleted", 400);
-   }
+  if (user.IsDeleted === true) {
+    throw new AppError("User already deleted", 400);
+  }
 
   await userRepository.deleteUser(userId);
 
@@ -281,13 +215,7 @@ if (user.IsDeleted === true) {
   };
 };
 
-
-
-
-
-
 const deleteUserByAdmin = async (userId) => {
-
   const id = parseInt(userId);
 
   if (!id || isNaN(id)) {
@@ -313,12 +241,7 @@ const deleteUserByAdmin = async (userId) => {
   };
 };
 
-
-
-
-
 const ActivateUserByAdmin = async (userId) => {
-
   const id = parseInt(userId);
 
   if (!id || isNaN(id)) {
@@ -344,10 +267,7 @@ const ActivateUserByAdmin = async (userId) => {
   };
 };
 
-
-
 const getUsersWithDiet = async (page) => {
-
   const limit = 10; 
   const offset = (page - 1) * limit;
 
@@ -365,9 +285,14 @@ const getUsersWithDiet = async (page) => {
   };
 };
 
-
-
-
-
-
-module.exports = { signup, login, updateProfile , getProfileById, getUserProfileWithDiet, deleteUser, deleteUserByAdmin, ActivateUserByAdmin, getUsersWithDiet};
+export default {
+  signup,
+  login,
+  updateProfile,
+  getProfileById,
+  getUserProfileWithDiet,
+  deleteUser,
+  deleteUserByAdmin,
+  ActivateUserByAdmin,
+  getUsersWithDiet
+};

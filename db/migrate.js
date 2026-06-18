@@ -1,6 +1,10 @@
-const fs = require('fs');
-const path = require('path');
-const { sql, poolPromise } = require('./connection');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { sql, poolPromise } from './connection.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function migrate() {
   console.log('🏁 Starting Database Migrations...');
@@ -87,7 +91,6 @@ async function migrate() {
     console.error('❌ Migration process encountered an error:', err);
     process.exit(1);
   } finally {
-    // Terminate process execution successfully
     process.exit(0);
   }
 }

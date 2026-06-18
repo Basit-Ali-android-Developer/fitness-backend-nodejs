@@ -1,4 +1,4 @@
-const { sql, poolPromise } = require("../db/connection");
+import { sql, poolPromise } from "../db/connection.js";
 
 async function runMealCron() {
   console.log(" CRON STARTED:", new Date().toString());
@@ -169,4 +169,4 @@ async function runMealCron() {
   }
 }
 
-module.exports = { runMealCron };
+export { runMealCron };

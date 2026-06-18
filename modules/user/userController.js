@@ -1,12 +1,7 @@
-const userService = require('./userService');
-const asyncHandler = require('../../utils/asyncHandler');
-
-
-
-
+import userService from './userService.js';
+import asyncHandler from '../../utils/asyncHandler.js';
 
 const signup = asyncHandler(async (req, res) => {
-
   await userService.signup(req.body);
 
   res.status(201).json({
@@ -14,15 +9,9 @@ const signup = asyncHandler(async (req, res) => {
     message: "Account created successfully",
     data: null
   });
-
 });
 
-
-
-
-
 const login = asyncHandler(async (req, res) => {
-
   const result = await userService.login(req.body);
 
   res.status(200).json({
@@ -30,16 +19,9 @@ const login = asyncHandler(async (req, res) => {
     message: "Login successful",
     data: result
   });
-
 });
 
-
-
-
-
-
 const updateProfile = asyncHandler(async (req, res) => {
-
   const result = await userService.updateProfile(req.user, req.body);
 
   res.status(200).json({
@@ -49,33 +31,19 @@ const updateProfile = asyncHandler(async (req, res) => {
   });
 });
 
+const getProfileById = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const result = await userService.getProfileById(userId);
 
-
-
-
-
-const getProfileById =  asyncHandler(async (req, res) => {
-
-    const userId = req.params.id;
-
-    const result = await userService.getProfileById(userId);
-
-    return res.status(200).json({
-      result: "success",
-      message: "Profile fetched successfully",
-      data: result
+  return res.status(200).json({
+    result: "success",
+    message: "Profile fetched successfully",
+    data: result
   });
 });
 
-
-
-
-
-
-
 const getUserProfileWithDiet = asyncHandler(async (req, res) => {
   const userId = req.user.Id;
-
   const result = await userService.getUserProfileWithDiet(userId);
 
   return res.status(200).json({
@@ -85,62 +53,41 @@ const getUserProfileWithDiet = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
-
-
-
 const deleteUser = asyncHandler(async (req, res) => {
+  const userId = req.user.Id; 
+  const result = await userService.deleteUser(userId);
 
-    const userId = req.user.Id; 
-
-    const result = await userService.deleteUser(userId);
-
-    return res.status(200).json({
-      result: "success",
-      message: result.message,
-      data: null
+  return res.status(200).json({
+    result: "success",
+    message: result.message,
+    data: null
   });
 });
 
-
-
-
 const deleteUserByAdmin = asyncHandler(async (req, res) => {
-    const userId = req.params.id;
+  const userId = req.params.id;
+  const result = await userService.deleteUserByAdmin(userId);
 
-    const result = await userService.deleteUserByAdmin(userId);
-
-    return res.status(200).json({
-      result: "success",
-      message: result.message,
-      data: null
-    });
+  return res.status(200).json({
+    result: "success",
+    message: result.message,
+    data: null
+  });
 });
-
-
-
 
 const ActivateUserByAdmin = asyncHandler(async (req, res) => {
-    const userId = req.params.id;
+  const userId = req.params.id;
+  const result = await userService.ActivateUserByAdmin(userId);
 
-    const result = await userService.ActivateUserByAdmin(userId);
-
-    return res.status(200).json({
-      result: "success",
-      message: result.message,
-      data: null
-    });
+  return res.status(200).json({
+    result: "success",
+    message: result.message,
+    data: null
+  });
 });
 
-
-
-
 const getUsersWithDiet = asyncHandler(async (req, res) => {
-
   const page = parseInt(req.query.page) || 1;
-
   const result = await userService.getUsersWithDiet(page);
 
   return res.status(200).json({
@@ -149,10 +96,16 @@ const getUsersWithDiet = asyncHandler(async (req, res) => {
     data: result.data,
     pagination: result.pagination
   });
-
 });
 
-
-
-
-module.exports = { signup , login , updateProfile , getProfileById , getUserProfileWithDiet, deleteUser, deleteUserByAdmin , ActivateUserByAdmin , getUsersWithDiet};
+export {
+  signup,
+  login,
+  updateProfile,
+  getProfileById,
+  getUserProfileWithDiet,
+  deleteUser,
+  deleteUserByAdmin,
+  ActivateUserByAdmin,
+  getUsersWithDiet
+};

@@ -1,7 +1,4 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 const findByEmail = async (email) => {
   const pool = await poolPromise;
@@ -12,9 +9,6 @@ const findByEmail = async (email) => {
 
   return result.recordset[0];
 };
-
-
-
 
 const createUser = async (user) => {
   const pool = await poolPromise;
@@ -30,21 +24,18 @@ const createUser = async (user) => {
     .input('Gender', sql.NVarChar, user.gender || null)
     .input('IsProfileComplete', sql.Bit, user.isProfileComplete)
     .input('IsDeleted', sql.Bit, user.isDeleted)
-   .query(`
-  INSERT INTO Users 
-  (Name, Email, Password, UserType, Height, Weight, Age, Gender, IsProfileComplete,IsDeleted, CreatedAt, UpdatedAt)
-  OUTPUT inserted.*
-  VALUES 
-  (@Name, @Email, @Password, @UserType, @Height, @Weight, @Age, @Gender, @IsProfileComplete, @IsDeleted, GETDATE(), GETDATE())
-`);
+    .query(`
+      INSERT INTO Users 
+      (Name, Email, Password, UserType, Height, Weight, Age, Gender, IsProfileComplete,IsDeleted, CreatedAt, UpdatedAt)
+      OUTPUT inserted.*
+      VALUES 
+      (@Name, @Email, @Password, @UserType, @Height, @Weight, @Age, @Gender, @IsProfileComplete, @IsDeleted, GETDATE(), GETDATE())
+    `);
 
   return result.recordset[0];
 };
 
-
-
-
-const findByEmailExcludeUser  = async (email, userId) => {
+const findByEmailExcludeUser = async (email, userId) => {
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -57,9 +48,6 @@ const findByEmailExcludeUser  = async (email, userId) => {
 
   return result.recordset[0];
 };
-
-
-
 
 const updateUser = async (userId, data) => {
   const pool = await poolPromise;
@@ -103,11 +91,6 @@ const updateUser = async (userId, data) => {
   return result.recordset[0]; // may be undefined
 };
 
-
-
-
-
-
 const getById = async (userId) => {
   const pool = await poolPromise;
 
@@ -121,10 +104,6 @@ const getById = async (userId) => {
 
   return result.recordset[0];
 };
-
-
-
-
 
 const getFullUserById = async (userId) => {
   const pool = await poolPromise;
@@ -140,9 +119,6 @@ const getFullUserById = async (userId) => {
   return result.recordset[0];
 };
 
-
-
-
 const getDietByUserId = async (userId) => {
   const pool = await poolPromise;
 
@@ -156,10 +132,6 @@ const getDietByUserId = async (userId) => {
 
   return result.recordset[0];
 };
-
-
-
-
 
 const deleteUser = async (userId) => {
   const pool = await poolPromise;
@@ -177,9 +149,6 @@ const deleteUser = async (userId) => {
   return result.rowsAffected[0]; // number of affected rows
 };
 
-
-
-
 const ActivateUser = async (userId) => {
   const pool = await poolPromise;
 
@@ -196,11 +165,6 @@ const ActivateUser = async (userId) => {
   return result.rowsAffected[0]; 
 };
 
-
-
-
-
-
 const getUsersWithDiet = async (offset, limit) => {
   const pool = await poolPromise;
 
@@ -214,7 +178,6 @@ const getUsersWithDiet = async (offset, limit) => {
         u.Email,
         u.UserType,
         u.IsDeleted,
-
         d.GoalType,
         d.TargetWeight,
         d.BMR,
@@ -223,14 +186,11 @@ const getUsersWithDiet = async (offset, limit) => {
         d.ActivityLevel,
         d.CreatedAt AS DietCreatedAt,
         d.UpdatedAt AS DietUpdatedAt
-
       FROM Users u
       LEFT JOIN UserDietPlans d 
         ON u.Id = d.UserId
-
       WHERE u.IsDeleted = 0
         AND u.UserType != 'Admin'
-
       ORDER BY u.Id
       OFFSET @offset ROWS
       FETCH NEXT @limit ROWS ONLY
@@ -249,14 +209,7 @@ const getUsersWithDiet = async (offset, limit) => {
   };
 };
 
-
-
-
-
-
-
-
-module.exports = {
+export default {
   findByEmail,
   createUser,
   findByEmailExcludeUser,

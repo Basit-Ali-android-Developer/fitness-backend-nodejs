@@ -1,9 +1,7 @@
-const summaryService = require('./summaryService');
-const asyncHandler = require('../../utils/asyncHandler');
-
+import summaryService from './summaryService.js';
+import asyncHandler from '../../utils/asyncHandler.js';
 
 const getTodaySummary = asyncHandler(async (req, res) => {
-
   const result = await summaryService.getTodaySummary(req.user.Id);
 
   res.status(200).json({
@@ -11,13 +9,9 @@ const getTodaySummary = asyncHandler(async (req, res) => {
     message: "Today summary fetched successfully",
     data: result
   });
-
 });
 
-
-
 const getDashboardStats = asyncHandler(async (req, res) => {
-
   const result = await summaryService.getDashboardStats(req.user.Id);
 
   res.status(200).json({
@@ -25,8 +19,6 @@ const getDashboardStats = asyncHandler(async (req, res) => {
     message: "Dashboard fetched successfully",
     data: result
   });
-
 });
 
-
-module.exports = { getTodaySummary, getDashboardStats };
+export { getTodaySummary, getDashboardStats };

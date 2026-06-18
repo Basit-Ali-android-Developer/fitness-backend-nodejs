@@ -1,14 +1,7 @@
-const mealService = require('./mealService');
-const asyncHandler = require('../../utils/asyncHandler');
-
-
-
-
-
-
+import mealService from './mealService.js';
+import asyncHandler from '../../utils/asyncHandler.js';
 
 const createMeal = asyncHandler(async (req, res) => {
-
   const result = await mealService.createMeal(req.user.Id, req.body);
 
   res.status(201).json({
@@ -18,14 +11,7 @@ const createMeal = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
-
-
-
 const getUserMeals = asyncHandler(async (req, res) => {
-
   const result = await mealService.getUserMeals(req.user.Id);
 
   res.status(200).json({
@@ -33,19 +19,10 @@ const getUserMeals = asyncHandler(async (req, res) => {
     message: result.length ? "Meals fetched successfully" : "No meals found",
     data: result
   });
-
 });
 
-
-
-
-
-// ----------------- Get Single Meal -----------------
-
 const getMealById = asyncHandler(async (req, res) => {
-
   const mealId = parseInt(req.params.id);
-
   const result = await mealService.getMealById(req.user.Id, mealId);
 
   res.status(200).json({
@@ -53,16 +30,9 @@ const getMealById = asyncHandler(async (req, res) => {
     message: "Meal fetched successfully",
     data: result
   });
-
 });
 
-
-
-
-// ----------------- update Meal -----------------
-
 const updateMeal = asyncHandler(async (req, res) => {
-
   const UserId = req.user.Id;
   const mealId = parseInt(req.params.id);
 
@@ -77,15 +47,7 @@ const updateMeal = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
-// ----------------- delete Meal -----------------
-
-
-
 const deleteMeal = asyncHandler(async (req, res) => {
-
   const UserId = req.user.Id;
   const mealId = parseInt(req.params.id);
 
@@ -97,13 +59,7 @@ const deleteMeal = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
-
-
 const getTodayMeals = asyncHandler(async (req, res) => {
-
   const result = await mealService.getTodayMeals(req.user.Id);
 
   res.status(200).json({
@@ -111,13 +67,9 @@ const getTodayMeals = asyncHandler(async (req, res) => {
     message: result.length ? "Meals fetched successfully" : "No meals found",
     data: result
   });
-
 });
 
-
-
 const markMealDone = asyncHandler(async (req, res) => {
-
   const UserId = req.user.Id;
   const trackingId = parseInt(req.params.id);
 
@@ -129,13 +81,8 @@ const markMealDone = asyncHandler(async (req, res) => {
   });
 });
 
-
-
-
 const getMealHistory = asyncHandler(async (req, res) => {
-
   const page = parseInt(req.query.page) || 1;
-
   const result = await mealService.getMealHistory(req.user.Id, page);
 
   res.status(200).json({
@@ -146,23 +93,15 @@ const getMealHistory = asyncHandler(async (req, res) => {
     data: result.data,
     pagination: result.pagination
   });
-
 });
 
-
-
-
-
-
-
-
-module.exports = {
-   createMeal,
-   getUserMeals,
+export {
+  createMeal,
+  getUserMeals,
   getMealById,
-  updateMeal, 
-  deleteMeal, 
-  getTodayMeals, 
-  markMealDone, 
+  updateMeal,
+  deleteMeal,
+  getTodayMeals,
+  markMealDone,
   getMealHistory
 };

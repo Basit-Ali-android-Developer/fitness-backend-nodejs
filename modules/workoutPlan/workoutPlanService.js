@@ -1,13 +1,8 @@
-const workoutPlanRepo = require('./workoutPlanRepository');
-const AppError = require('../../utils/AppError');
-
-
-
+import workoutPlanRepo from './workoutPlanRepository.js';
+import AppError from '../../utils/AppError.js';
 
 const createWorkoutPlan = async (userId, data) => {
-
   const { name, goal, level, daysCount, description, days } = data;
-
 
   if (!name || typeof name !== "string") {
     throw new AppError("Plan name is required", 400);
@@ -29,16 +24,13 @@ const createWorkoutPlan = async (userId, data) => {
     throw new AppError("At least one workout day is required", 400);
   }
 
-
   if (days.length !== daysCount) {
     throw new AppError("daysCount must match number of days", 400);
   }
 
-
   const dayIndexes = days.map(d => d.dayIndex);
 
   for (const day of days) {
-
     if (!day.dayIndex || typeof day.dayIndex !== "number") {
       throw new AppError("Each day must have valid dayIndex", 400);
     }
@@ -56,7 +48,6 @@ const createWorkoutPlan = async (userId, data) => {
     }
   }
 
-
   const uniqueIndexes = new Set(dayIndexes);
   if (uniqueIndexes.size !== dayIndexes.length) {
     throw new AppError("Duplicate dayIndex not allowed", 400);
@@ -69,13 +60,10 @@ const createWorkoutPlan = async (userId, data) => {
     }
   }
 
-
   for (const day of days) {
-
     const orderIndexes = [];
 
     for (const ex of day.exercises) {
-
       if (!ex.exerciseId || typeof ex.exerciseId !== "number") {
         throw new AppError(`Invalid exerciseId in day ${day.dayIndex}`, 400);
       }
@@ -102,13 +90,10 @@ const createWorkoutPlan = async (userId, data) => {
     }
   }
 
-
   await workoutPlanRepo.deactivateUserPlans(userId);
-
   const planId = await workoutPlanRepo.createPlan(userId, data);
 
   for (const day of days) {
-
     const dayId = await workoutPlanRepo.createDay({
       planId,
       dayIndex: day.dayIndex,
@@ -116,7 +101,6 @@ const createWorkoutPlan = async (userId, data) => {
     });
 
     for (const ex of day.exercises) {
-
       await workoutPlanRepo.createExercise({
         dayId,
         exerciseId: ex.exerciseId,
@@ -131,31 +115,14 @@ const createWorkoutPlan = async (userId, data) => {
   return { planId };
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 const getUserWorkoutPlans = async (userId, page = 1) => {
-
-  const { data: plans, pagination } =
-    await workoutPlanRepo.getUserPlansAll(userId, page);
+  const { data: plans, pagination } = await workoutPlanRepo.getUserPlansAll(userId, page);
 
   for (const plan of plans) {
-
     const days = await workoutPlanRepo.getPlanDays(plan.Id);
 
     for (const day of days) {
-
       const exercises = await workoutPlanRepo.getDayExercises(day.Id);
-
       day.exercises = exercises;
     }
 
@@ -168,22 +135,13 @@ const getUserWorkoutPlans = async (userId, page = 1) => {
   };
 };
 
-
-
-
-
-
 const updateWorkoutPlan = async (userId, planId, data) => {
-
   const { name, goal, level, daysCount, description, days } = data;
-
- 
   const plan = await workoutPlanRepo.getPlanById(planId);
 
   if (!plan || plan.UserId !== userId) {
     throw new AppError("Workout plan not found", 404);
   }
-
 
   if (!name || typeof name !== "string") {
     throw new AppError("Plan name is required", 400);
@@ -209,11 +167,9 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     throw new AppError("daysCount must match number of days", 400);
   }
 
-
   const dayIndexes = days.map(d => d.dayIndex);
 
   for (const day of days) {
-
     if (!day.dayIndex || typeof day.dayIndex !== "number") {
       throw new AppError("Each day must have valid dayIndex", 400);
     }
@@ -231,7 +187,6 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     }
   }
 
-
   const uniqueIndexes = new Set(dayIndexes);
   if (uniqueIndexes.size !== dayIndexes.length) {
     throw new AppError("Duplicate dayIndex not allowed", 400);
@@ -244,13 +199,10 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     }
   }
 
-
   for (const day of days) {
-
     const orderIndexes = [];
 
     for (const ex of day.exercises) {
-
       if (!ex.exerciseId || typeof ex.exerciseId !== "number") {
         throw new AppError(`Invalid exerciseId in day ${day.dayIndex}`, 400);
       }
@@ -277,7 +229,6 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     }
   }
 
-
   await workoutPlanRepo.updatePlan({
     planId,
     name,
@@ -287,13 +238,10 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     description
   });
 
-
   await workoutPlanRepo.deletePlanExercises(planId);
   await workoutPlanRepo.deletePlanDays(planId);
 
-
   for (const day of days) {
-
     const dayId = await workoutPlanRepo.createDay({
       planId,
       dayIndex: day.dayIndex,
@@ -301,7 +249,6 @@ const updateWorkoutPlan = async (userId, planId, data) => {
     });
 
     for (const ex of day.exercises) {
-
       await workoutPlanRepo.createExercise({
         dayId,
         exerciseId: ex.exerciseId,
@@ -316,13 +263,7 @@ const updateWorkoutPlan = async (userId, planId, data) => {
   return { planId };
 };
 
-
-
-
-
-
 const getActiveWorkoutPlan = async (userId) => {
-
   const plan = await workoutPlanRepo.getActivePlanByUser(userId);
 
   if (!plan) {
@@ -337,21 +278,15 @@ const getActiveWorkoutPlan = async (userId) => {
   }
 
   plan.days = days;
-
   return plan;
 };
 
-
-
-
 const activateWorkoutPlan = async (userId, planId) => {
-
   const plan = await workoutPlanRepo.getPlanById(planId);
 
   if (!plan || plan.UserId !== userId) {
     throw new AppError("Workout plan not found", 404);
   }
-
 
   if (plan.IsActive) {
     return {
@@ -361,14 +296,10 @@ const activateWorkoutPlan = async (userId, planId) => {
   }
 
   await workoutPlanRepo.activatePlanForUser(userId, planId);
-
   return { planId };
 };
 
-
-
 const deleteWorkoutPlan = async (userId, planId) => {
-
   const plan = await workoutPlanRepo.getPlanById(planId);
 
   if (!plan || plan.UserId !== userId) {
@@ -377,14 +308,11 @@ const deleteWorkoutPlan = async (userId, planId) => {
 
   const isActive = plan.IsActive;
 
- 
   await workoutPlanRepo.deletePlanExercises(planId);
   await workoutPlanRepo.deletePlanDays(planId);
   await workoutPlanRepo.deletePlan(planId);
 
- 
   if (isActive) {
-
     const anotherPlan = await workoutPlanRepo.getAnotherUserPlan(userId, planId);
 
     if (anotherPlan) {
@@ -395,13 +323,11 @@ const deleteWorkoutPlan = async (userId, planId) => {
   return { planId };
 };
 
-
-module.exports = {
+export default {
   createWorkoutPlan,
   getUserWorkoutPlans,
   updateWorkoutPlan,
   getActiveWorkoutPlan,
   activateWorkoutPlan,
   deleteWorkoutPlan
-  
 };

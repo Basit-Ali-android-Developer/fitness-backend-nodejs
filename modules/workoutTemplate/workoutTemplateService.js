@@ -1,12 +1,7 @@
-const templateRepo = require('./workoutTemplateRepository');
-const AppError = require('../../utils/AppError');
-
-
-
-
+import templateRepo from './workoutTemplateRepository.js';
+import AppError from '../../utils/AppError.js';
 
 const createFullWorkoutTemplateSplit = async (data) => {
-
   if (!data.name || !data.days || data.days.length === 0) {
     throw new AppError("Invalid workout template data", 400);
   }
@@ -16,7 +11,6 @@ const createFullWorkoutTemplateSplit = async (data) => {
 
   //  Loop Days
   for (const day of data.days) {
-
     const dayId = await templateRepo.createDay({
       templateId,
       dayNumber: day.dayNumber,
@@ -39,24 +33,15 @@ const createFullWorkoutTemplateSplit = async (data) => {
   return { templateId };
 };
 
-
-
-
 const getAllTemplates = async (page = 1) => {
-
-  const { data: templates, pagination } =
-    await templateRepo.getAllTemplatesFull(page);
-
+  const { data: templates, pagination } = await templateRepo.getAllTemplatesFull(page);
   const result = [];
 
   for (const t of templates) {
-
     const days = await templateRepo.getDaysByTemplateId(t.Id);
-
     const fullDays = [];
 
     for (const d of days) {
-
       const exercises = await templateRepo.getExercisesByDayId(d.Id);
 
       fullDays.push({
@@ -89,11 +74,7 @@ const getAllTemplates = async (page = 1) => {
   };
 };
 
-
-
-
 const getTemplateById = async (id) => {
-
   const t = await templateRepo.getTemplateById(id);
 
   if (!t) {
@@ -101,11 +82,9 @@ const getTemplateById = async (id) => {
   }
 
   const days = await templateRepo.getDaysByTemplateId(id);
-
   const fullDays = [];
 
   for (const d of days) {
-
     const exercises = await templateRepo.getExercisesByDayId(d.Id);
 
     fullDays.push({
@@ -132,14 +111,10 @@ const getTemplateById = async (id) => {
   };
 };
 
-
-
 const updateWorkoutTemplateSplit = async (templateId, data) => {
-
   if (!data.name || !data.days || data.days.length === 0) {
     throw new AppError("Invalid workout template data", 400);
   }
-
 
   const exists = await templateRepo.getTemplateById(templateId);
 
@@ -147,13 +122,11 @@ const updateWorkoutTemplateSplit = async (templateId, data) => {
     throw new AppError("Workout template not found", 404);
   }
 
-
   await templateRepo.updateTemplate({
     templateId,
     ...data
   });
 
- 
   const days = await templateRepo.getDaysByTemplateId(templateId);
 
   for (const d of days) {
@@ -162,9 +135,7 @@ const updateWorkoutTemplateSplit = async (templateId, data) => {
 
   await templateRepo.deleteDaysByTemplateId(templateId);
 
-
   for (const day of data.days) {
-
     const dayId = await templateRepo.createDay({
       templateId,
       dayNumber: day.dayNumber,
@@ -186,46 +157,29 @@ const updateWorkoutTemplateSplit = async (templateId, data) => {
   return { templateId };
 };
 
-
-
-
-
-
 const deleteWorkoutTemplate = async (templateId) => {
-
-
   const exists = await templateRepo.getTemplateById(templateId);
 
   if (!exists) {
     throw new AppError("Workout template not found", 404);
   }
 
-
   const days = await templateRepo.getDaysByTemplateId(templateId);
-
 
   for (const d of days) {
     await templateRepo.deleteExercisesByDayId(d.Id);
   }
 
-
   await templateRepo.deleteDaysByTemplateId(templateId);
-
-
   await templateRepo.deleteTemplate(templateId);
 
   return { templateId };
 };
 
-
-
-
-
-module.exports = {
+export default {
   createFullWorkoutTemplateSplit,
   getAllTemplates,
   getTemplateById,
   updateWorkoutTemplateSplit,
   deleteWorkoutTemplate
-
 };

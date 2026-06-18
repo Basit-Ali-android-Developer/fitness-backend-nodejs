@@ -1,4 +1,4 @@
-const sql = require('mssql');
+import sql from 'mssql';
 
 const config = {
   user: process.env.DB_USER || 'sa',                 // your SQL login
@@ -28,4 +28,4 @@ const poolPromise = new sql.ConnectionPool(config)
     process.exit(1); // stops Node if connection fails
   });
 
-module.exports = { sql, poolPromise };
+export { sql, poolPromise };

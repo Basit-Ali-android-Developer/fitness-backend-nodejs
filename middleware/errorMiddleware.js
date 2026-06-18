@@ -1,4 +1,4 @@
-const logger = require("../utils/logger/logger");
+import logger from '../utils/logger/logger.js';
 
 const errorMiddleware = (err, req, res, next) => {
    logger.error(`${err.message} - ${err.stack}`);
@@ -13,4 +13,4 @@ const errorMiddleware = (err, req, res, next) => {
   });
 };
 
-module.exports = errorMiddleware;
+export default errorMiddleware;

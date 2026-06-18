@@ -1,10 +1,6 @@
-const { sql, poolPromise } = require('../../db/connection');
-
-
-
+import { sql, poolPromise } from '../../db/connection.js';
 
 const createTemplate = async (data) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -16,19 +12,13 @@ const createTemplate = async (data) => {
     .query(`
       INSERT INTO WorkoutTemplates (Name, Goal, Level, DaysCount, Description)
       VALUES (@Name, @Goal, @Level, @DaysCount, @Description);
-
       SELECT SCOPE_IDENTITY() AS Id;
     `);
 
   return result.recordset[0].Id;
 };
 
-
-
-
-
 const createDay = async ({ templateId, dayNumber, title }) => {
-
   const pool = await poolPromise;
 
   const result = await pool.request()
@@ -38,18 +28,13 @@ const createDay = async ({ templateId, dayNumber, title }) => {
     .query(`
       INSERT INTO WorkoutTemplateDays (TemplateId, DayNumber, Title)
       VALUES (@TemplateId, @DayNumber, @Title);
-
       SELECT SCOPE_IDENTITY() AS Id;
     `);
 
   return result.recordset[0].Id;
 };
 
-
-
-
 const createExercise = async (data) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -66,13 +51,7 @@ const createExercise = async (data) => {
     `);
 };
 
-
-//    get templates 
-
-
-
 const getAllTemplates = async () => {
-
   const pool = await poolPromise;
 
   const templates = await pool.request().query(`
@@ -84,11 +63,7 @@ const getAllTemplates = async () => {
   return templates.recordset;
 };
 
-
-
-
 const getAllTemplatesFull = async (page = 1) => {
-
   const pool = await poolPromise;
 
   const limit = 5;
@@ -125,10 +100,7 @@ const getAllTemplatesFull = async (page = 1) => {
   };
 };
 
-
-
 const getTemplateById = async (id) => {
-
   const pool = await poolPromise;
 
   const template = await pool.request()
@@ -142,11 +114,7 @@ const getTemplateById = async (id) => {
   return template.recordset[0];
 };
 
-
-
-
 const getDaysByTemplateId = async (templateId) => {
-
   const pool = await poolPromise;
 
   const days = await pool.request()
@@ -161,14 +129,7 @@ const getDaysByTemplateId = async (templateId) => {
   return days.recordset;
 };
 
-
-
-
-
-
-
 const getExercisesByDayId = async (dayId) => {
-
   const pool = await poolPromise;
 
   const exercises = await pool.request()
@@ -183,14 +144,7 @@ const getExercisesByDayId = async (dayId) => {
   return exercises.recordset;
 };
 
-
-//    update template 
-
-
-
-
 const updateTemplate = async (data) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -212,15 +166,7 @@ const updateTemplate = async (data) => {
     `);
 };
 
-
-
-
-
-
-
-
 const deleteExercisesByDayId = async (dayId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -231,10 +177,7 @@ const deleteExercisesByDayId = async (dayId) => {
     `);
 };
 
-
-
 const deleteDaysByTemplateId = async (templateId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -245,15 +188,7 @@ const deleteDaysByTemplateId = async (templateId) => {
     `);
 };
 
-
-
-
-//   delete workout 
-
-
-
 const deleteTemplate = async (templateId) => {
-
   const pool = await poolPromise;
 
   await pool.request()
@@ -264,8 +199,7 @@ const deleteTemplate = async (templateId) => {
     `);
 };
 
-
-module.exports = {
+export default {
   createTemplate,
   createDay,
   createExercise,
@@ -273,12 +207,9 @@ module.exports = {
   getTemplateById,
   getDaysByTemplateId,
   getExercisesByDayId,
-
   updateTemplate,
-
   deleteExercisesByDayId,
   deleteDaysByTemplateId,
-
   deleteTemplate,
   getAllTemplatesFull
 };

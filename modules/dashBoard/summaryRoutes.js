@@ -1,16 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { getTodaySummary, getDashboardStats } = require('./summaryController');
-const authMiddleware = require('../../middleware/authMiddleware');
-
+import { getTodaySummary, getDashboardStats } from './summaryController.js';
+import authMiddleware from '../../middleware/authMiddleware.js';
 
 router.get('/getTodaySummary', authMiddleware, getTodaySummary);
 router.get('/getDashboardStats', authMiddleware, getDashboardStats);
 
-
-
-
-
-
-
-module.exports = router;
+export default router;
