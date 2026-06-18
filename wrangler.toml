@@ -1,0 +1,23 @@
+name = "fitness-backend"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat", "enable_nodejs_http_server_modules" ]
+
+[triggers]
+crons = ["6 17 * * *"]
+
+[vars]
+NODE_ENV = "production"
+DB_SERVER = "your-mssql-server-address.database.windows.net"
+DB_PORT = "1433"
+DB_DATABASE = "FitnessAppDB"
+DB_USER = "sa"
+DB_ENCRYPT = "false"
+DB_TRUST_SERVER_CERTIFICATE = "true"
+DB_POOL_MAX = "10"
+DB_POOL_MIN = "0"
+DB_POOL_IDLE_TIMEOUT = "30000"
+
+# Note: DB_PASSWORD and JWT_SECRET should be created securely as Cloudflare secrets using:
+# wrangler secret put DB_PASSWORD
+# wrangler secret put JWT_SECRET

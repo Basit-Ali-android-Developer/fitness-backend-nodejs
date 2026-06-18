@@ -10,26 +10,38 @@ const logFormat = winston.format.combine(
   })
 );
 
-// Create logger
-const logger = winston.createLogger({
-  level: "info",
-  format: logFormat,
-  transports: [
+const transports = [];
+const isWorker = typeof globalThis !== 'undefined' && (globalThis.WebSocketPair || process.env.CF_PAGES || process.env.CLOUDFLARE_WORKER);
+
+if (isWorker || process.env.DISABLE_FILE_LOGS === "true") {
+  transports.push(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    })
+  );
+} else {
+  transports.push(
     // Errors only
     new winston.transports.File({
       filename: path.join(__dirname, '../logs/error.log'),
       level: "error",
     }),
-
     // All logs
     new winston.transports.File({
       filename: path.join(__dirname, '../logs/combined.log')
-    }),
-  ],
+    })
+  );
+}
+
+// Create logger
+const logger = winston.createLogger({
+  level: "info",
+  format: logFormat,
+  transports: transports,
 });
 
 // Console log in development
-if (process.env.NODE_ENV !== "production") {
+if (!isWorker && process.env.DISABLE_FILE_LOGS !== "true" && process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),

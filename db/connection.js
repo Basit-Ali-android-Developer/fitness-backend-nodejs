@@ -1,19 +1,19 @@
 const sql = require('mssql');
 
 const config = {
-  user: 'sa',                 // your SQL login
-  password: 'sa',   // your SQL password
-  server: 'localhost',        // or your server name
-  database: 'FitnessAppDB',   // your DB name
-  port: 1433,                 // SQL Server default port
+  user: process.env.DB_USER || 'sa',                 // your SQL login
+  password: process.env.DB_PASSWORD || 'sa',   // your SQL password
+  server: process.env.DB_SERVER || 'localhost',        // or your server name
+  database: process.env.DB_DATABASE || 'FitnessAppDB',   // your DB name
+  port: parseInt(process.env.DB_PORT || '1433', 10),                 // SQL Server default port
   options: {
-    encrypt: false,           
-    trustServerCertificate: true
+    encrypt: process.env.DB_ENCRYPT === 'true' || false,           
+    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true' || true
   },
   pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000
+    max: parseInt(process.env.DB_POOL_MAX || '10', 10),
+    min: parseInt(process.env.DB_POOL_MIN || '0', 10),
+    idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10)
   }
 };
 

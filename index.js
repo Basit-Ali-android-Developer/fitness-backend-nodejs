@@ -1,61 +1,8 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const errorMiddleware = require('./middleware/errorMiddleware');
+// Load environment variables as early as possible
+require('dotenv').config();
 
-const requestLogger = require('./middleware/requestLoggerMiddleware');
-
-
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-
-
-
-const userRoutes = require('./modules/user/userRoutes');
-const dietRoutes = require('./modules/diet/dietRoutes');
-const mealRoutes = require('./modules/meal/mealRoutes');
-const foodRoutes = require('./modules/food/foodRoutes');
-const summaryRoutes = require('./modules/dashBoard/summaryRoutes');
-
-const workoutTemplateRoutes = require('./modules/workoutTemplate/workoutTemplateRoutes');
-const workoutPlanRoutes = require('./modules/workoutPlan/workoutPlanRoutes');
-const workoutTrackingRoutes = require('./modules/workoutTracking/workoutTrackingRoutes');
-
-
-const app = express();
-
-
-
-app.use(helmet());
-app.use(cors());
-
-const limiter = rateLimit({
-              windowMs: 15 * 60 * 1000, // 15 min
-              max: 100 // max requests
-            });
-app.use(limiter);
-
-app.use(bodyParser.json());
-
-app.use(requestLogger);
-
-
-
-// Mount routes
-app.use('/api/users', userRoutes);
-app.use('/api/diet', dietRoutes);
-app.use('/api/meal', mealRoutes);
-app.use('/api/dashboard', summaryRoutes);
-app.use('/api/food', foodRoutes);
-
-app.use('/api/workoutTemplate', workoutTemplateRoutes);
-app.use('/api/workoutPlan', workoutPlanRoutes);
-app.use('/api/workoutTracking', workoutTrackingRoutes);
-
-
+const app = require('./app');
 require('./cron/mealCron');
-app.use(errorMiddleware);
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
