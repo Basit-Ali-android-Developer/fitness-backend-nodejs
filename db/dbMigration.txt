@@ -1,0 +1,379 @@
+CREATE TABLE Users (
+    Id INT IDENTITY(1,1) PRIMARY KEY,      -- Auto-increment user ID
+    Name NVARCHAR(50) NOT NULL,
+    Email NVARCHAR(100) NOT NULL UNIQUE,
+    Password NVARCHAR(255) NOT NULL,       -- Store hashed password
+    UserType NVARCHAR(20) NOT NULL DEFAULT 'User',  -- 'Admin' or 'User'
+    Height FLOAT NULL,                      -- in cm
+    Weight FLOAT NULL,  
+    IsDeleted BIT NOT NULL DEFAULT 0;                    -- in kg
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE()
+    DeletedAt DATETIME NULL;
+);
+
+
+CREATE TABLE UserDietPlans (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+    GoalType NVARCHAR(20) NOT NULL,      -- Lose / Gain / Maintain
+    TargetWeight FLOAT NOT NULL,
+
+    BMR FLOAT NOT NULL,
+    MaintenanceCalories FLOAT NOT NULL,
+    TargetCalories FLOAT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+
+    ActivityLevel NVARCHAR(20) NOT NULL,
+
+    ProteinGrams FLOAT NOT NULL DEFAULT 0,
+    CarbsGrams FLOAT NOT NULL DEFAULT 0,
+    FatsGrams FLOAT NOT NULL DEFAULT 0;
+
+    CONSTRAINT FK_UserDietPlans_User FOREIGN KEY (UserId) REFERENCES Users(Id),
+
+    -- Only ONE plan per user (simple version)
+    CONSTRAINT UQ_UserDiet UNIQUE (UserId)
+);
+
+
+
+CREATE TABLE Meals (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+    Name NVARCHAR(50) NOT NULL,
+    MealTime NVARCHAR(8) NOT NULL,
+
+    TotalCalories FLOAT NOT NULL,
+    TotalProtein FLOAT NOT NULL,
+    TotalCarbs FLOAT NOT NULL,
+    TotalFats FLOAT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+
+    -- ❌ No duplicate meal names per user
+    CONSTRAINT UQ_User_MealName UNIQUE (UserId, Name),
+
+    -- ❌ No duplicate meal time per user
+    CONSTRAINT UQ_User_MealTime UNIQUE (UserId, MealTime),
+
+    -- FK
+    CONSTRAINT FK_Meals_User FOREIGN KEY (UserId)
+        REFERENCES Users(Id)
+        ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE MealIngredients (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    MealId INT NOT NULL,
+    FoodId INT NOT NULL,
+
+    Quantity FLOAT NOT NULL, -- in g or ml
+    Unit NVARCHAR(10),       -- g/ml (copied from Foods)
+
+    Calories FLOAT NOT NULL,
+    Protein FLOAT NOT NULL,
+    Carbs FLOAT NOT NULL,
+    Fats FLOAT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_MealIngredients_Meal FOREIGN KEY (MealId)
+    REFERENCES Meals(Id)
+    ON DELETE CASCADE,
+
+    CONSTRAINT FK_MealIngredients_Food FOREIGN KEY (FoodId)
+    REFERENCES Foods(Id)
+);
+
+
+
+
+CREATE TABLE MealTracking (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+
+    MealId INT NOT NULL,   -- reference to original meal
+
+    Name NVARCHAR(100) NOT NULL,
+
+	MealTime NVARCHAR(8) NOT NULL, -- user selected time
+
+    TotalCalories FLOAT NOT NULL,
+    TotalProtein FLOAT NOT NULL,
+    TotalCarbs FLOAT NOT NULL,
+    TotalFats FLOAT NOT NULL,
+
+
+    Date DATE NOT NULL,
+
+    IsDone BIT DEFAULT 0,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT UQ_User_Meal_Date UNIQUE (UserId, MealId, Date)
+);
+
+
+
+
+CREATE TABLE MealTrackingIngredients (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    MealTrackingId INT NOT NULL,
+
+    FoodId INT NOT NULL,
+
+    Name NVARCHAR(100),
+
+    Quantity FLOAT NOT NULL,
+    Unit NVARCHAR(10),
+
+    Calories FLOAT NOT NULL,
+    Protein FLOAT NOT NULL,
+    Carbs FLOAT NOT NULL,
+    Fats FLOAT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT FK_TrackingIngredients_Tracking
+        FOREIGN KEY (MealTrackingId)
+        REFERENCES MealTracking(Id)
+        ON DELETE CASCADE
+);
+
+
+CREATE TABLE MealHistory (
+   Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+
+    MealId INT NOT NULL,   -- reference to original meal
+
+    Name NVARCHAR(100) NOT NULL,
+
+	MealTime NVARCHAR(8) NOT NULL, -- user selected time
+
+    TotalCalories FLOAT NOT NULL,
+    TotalProtein FLOAT NOT NULL,
+    TotalCarbs FLOAT NOT NULL,
+    TotalFats FLOAT NOT NULL,
+
+
+    Date DATE NOT NULL,
+
+    IsDone BIT DEFAULT 0,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+);
+
+
+CREATE TABLE MealHistoryIngredients (
+     Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    MealHistoryId INT NOT NULL,
+
+    FoodId INT NOT NULL,
+
+    Name NVARCHAR(100),
+
+    Quantity FLOAT NOT NULL,
+    Unit NVARCHAR(10),
+
+    Calories FLOAT NOT NULL,
+    Protein FLOAT NOT NULL,
+    Carbs FLOAT NOT NULL,
+    Fats FLOAT NOT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+	
+  CONSTRAINT FK_HistoryIngredients_History
+  FOREIGN KEY (MealHistoryId)
+  REFERENCES MealHistory(Id)
+  ON DELETE CASCADE
+
+
+);
+
+
+CREATE TABLE Exercises (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    MuscleGroup NVARCHAR(50),
+    EquipmentType NVARCHAR(50),
+    Description NVARCHAR(255),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
+
+CREATE TABLE WorkoutTemplates (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(100) NOT NULL,
+    Goal NVARCHAR(50) NOT NULL,
+    Level NVARCHAR(30) NOT NULL,
+    DaysCount INT NOT NULL,
+    Description NVARCHAR(255),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+
+CREATE TABLE WorkoutTemplateDays (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TemplateId INT NOT NULL,
+    DayNumber INT NOT NULL,
+    Title NVARCHAR(50) NOT NULL,
+
+    CONSTRAINT FK_TemplateDays_Template
+    FOREIGN KEY (TemplateId) REFERENCES WorkoutTemplates(Id)
+    ON DELETE CASCADE
+);
+
+
+CREATE TABLE WorkoutTemplateExercises (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TemplateDayId INT NOT NULL,
+    ExerciseName NVARCHAR(100) NOT NULL,
+    ExerciseId INT NOT NULL,
+    Sets INT NOT NULL,
+    Reps INT NOT NULL,
+    OrderIndex INT NOT NULL,
+
+    CONSTRAINT FK_TemplateExercises_Day
+    FOREIGN KEY (TemplateDayId) REFERENCES WorkoutTemplateDays(Id)
+    ON DELETE CASCADE,
+
+    CONSTRAINT FK_TemplateExercises_Exercise
+    FOREIGN KEY (ExerciseId) REFERENCES Exercises(Id)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+CREATE TABLE UserWorkoutPlans (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+
+    Name NVARCHAR(100) NOT NULL,
+    Goal NVARCHAR(50),
+    Level NVARCHAR(30),
+
+    DaysCount INT NOT NULL,
+    Description NVARCHAR(255),
+
+    CurrentDayIndex INT DEFAULT 1,  
+
+    IsActive BIT DEFAULT 1,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME NULL
+);
+
+CREATE UNIQUE INDEX UQ_User_ActivePlan
+ON UserWorkoutPlans(UserId)
+WHERE IsActive = 1;
+
+
+CREATE TABLE UserWorkoutPlanDays (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserWorkoutPlanId INT NOT NULL,
+
+    DayIndex INT NOT NULL,
+    Title NVARCHAR(50) NOT NULL,
+
+    FOREIGN KEY (UserWorkoutPlanId)
+    REFERENCES UserWorkoutPlans(Id)
+    ON DELETE CASCADE,
+
+    CONSTRAINT UQ_UserWorkout_Day 
+    UNIQUE (UserWorkoutPlanId, DayIndex),
+
+    CONSTRAINT CHK_DayIndex_Positive 
+    CHECK (DayIndex > 0)
+);
+
+
+CREATE TABLE UserWorkoutPlanExercises (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserWorkoutPlanDayId INT NOT NULL,
+
+    ExerciseId INT NOT NULL,
+
+    Sets INT NOT NULL,
+    Reps INT NOT NULL,
+    ExerciseName NVARCHAR(100),
+
+    OrderIndex INT NOT NULL,
+
+    FOREIGN KEY (UserWorkoutPlanDayId)
+    REFERENCES UserWorkoutPlanDays(Id)
+    ON DELETE CASCADE,
+
+    FOREIGN KEY (ExerciseId)
+    REFERENCES Exercises(Id),
+
+    CONSTRAINT UQ_Day_Exercise_Order 
+    UNIQUE (UserWorkoutPlanDayId, OrderIndex),
+
+    CONSTRAINT CHK_Sets_Reps 
+    CHECK (Sets > 0 AND Reps > 0)
+);
+
+
+
+
+
+
+
+CREATE TABLE UserWorkoutSessions (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    UserId INT NOT NULL,
+    PlanId INT NOT NULL,
+    DayIndex INT NOT NULL,
+
+    Status NVARCHAR(20) DEFAULT 'in_progress', 
+    -- in_progress | completed | skipped
+
+    StartTime DATETIME DEFAULT GETDATE(),
+    EndTime DATETIME NULL
+);
+
+
+CREATE TABLE UserWorkoutSessionLogs (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+
+    SessionId INT NOT NULL,
+    ExerciseId INT NOT NULL,
+
+    SetNumber INT NOT NULL,
+    Reps INT NOT NULL,
+    Weight FLOAT NULL,
+
+    CreatedAt DATETIME DEFAULT GETDATE(),
+
+    FOREIGN KEY (SessionId)
+        REFERENCES UserWorkoutSessions(Id)
+        ON DELETE CASCADE
+);
