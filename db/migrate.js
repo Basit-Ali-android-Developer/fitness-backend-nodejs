@@ -3,8 +3,17 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { sql, poolPromise } from './connection.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let __filename = '';
+let __dirname = '';
+
+try {
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    __filename = fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+  }
+} catch (e) {
+  // Safe fallback
+}
 
 async function migrate() {
   console.log('🏁 Starting Database Migrations...');

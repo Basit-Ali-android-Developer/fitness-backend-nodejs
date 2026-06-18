@@ -2,8 +2,17 @@ import winston from 'winston';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let __filename = '';
+let __dirname = '';
+
+try {
+  if (typeof import.meta !== 'undefined' && import.meta.url) {
+    __filename = fileURLToPath(import.meta.url);
+    __dirname = path.dirname(__filename);
+  }
+} catch (e) {
+  // Safe fallback for environments without file URL support (like Cloudflare Workers)
+}
 
 // Define log format
 const logFormat = winston.format.combine(
