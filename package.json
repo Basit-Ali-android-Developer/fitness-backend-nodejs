@@ -7,8 +7,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "migrate": "node db/migrate.js"
+    "dev": "wrangler dev",
+    "migrate": "wrangler d1 migrations apply fitness-db --local",
+    "migrate:local": "wrangler d1 migrations apply fitness-db --local",
+    "migrate:remote": "wrangler d1 migrations apply fitness-db --remote"
   },
   "keywords": [],
   "author": "",
