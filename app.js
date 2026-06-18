@@ -20,11 +20,15 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 100 // max requests
-});
-app.use(limiter);
+const isWorker = typeof globalThis !== 'undefined' && (globalThis.WebSocketPair || process.env.CF_PAGES || process.env.CLOUDFLARE_WORKER);
+
+if (!isWorker) {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 100 // max requests
+  });
+  app.use(limiter);
+}
 
 app.use(bodyParser.json());
 app.use(requestLogger);
