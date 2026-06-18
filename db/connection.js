@@ -1,31 +1,131 @@
-import sql from 'mssql';
+import 'dotenv/config';
 
-const config = {
-  user: process.env.DB_USER || 'sa',                 // your SQL login
-  password: process.env.DB_PASSWORD || 'sa',   // your SQL password
-  server: process.env.DB_SERVER || 'localhost',        // or your server name
-  database: process.env.DB_DATABASE || 'FitnessAppDB',   // your DB name
-  port: parseInt(process.env.DB_PORT || '1433', 10),                 // SQL Server default port
-  options: {
-    encrypt: process.env.DB_ENCRYPT === 'true' || false,           
-    trustServerCertificate: process.env.DB_TRUST_SERVER_CERTIFICATE === 'true' || true
-  },
-  pool: {
-    max: parseInt(process.env.DB_POOL_MAX || '10', 10),
-    min: parseInt(process.env.DB_POOL_MIN || '0', 10),
-    idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_TIMEOUT || '30000', 10)
+let d1Database = null;
+
+export function setD1Database(db) {
+  d1Database = db;
+}
+
+export function getD1Database() {
+  if (!d1Database) {
+    throw new Error("D1 database has not been initialized. Ensure setD1Database(env.DB) is called in the Worker handler.");
   }
-};
+  return d1Database;
+}
 
-const poolPromise = new sql.ConnectionPool(config)
-  .connect()
-  .then(pool => {
-    console.log('✅ Connected to SQL Server');
-    return pool;
-  })
-  .catch(err => {
-    console.error('❌ DB Connection Error:', err);
-    process.exit(1); // stops Node if connection fails
-  });
+class MockTransaction {
+  constructor(pool) {
+    this.pool = pool;
+  }
+  async begin() {
+    return Promise.resolve();
+  }
+  async commit() {
+    return Promise.resolve();
+  }
+  async rollback() {
+    return Promise.resolve();
+  }
+}
 
-export { sql, poolPromise };
+class MockRequest {
+  constructor(connection) {
+    this.connection = connection;
+    this.parameters = {};
+  }
+
+  input(name, type, value) {
+    this.parameters[name] = value;
+    return this;
+  }
+
+  async query(sqlStr) {
+    const db = getD1Database();
+    let translatedSql = sqlStr.trim();
+
+    // -- Translate SQL dialects --
+    // A. GETDATE() -> CURRENT_TIMESTAMP
+    translatedSql = translatedSql.replace(/GETDATE\(\)/gi, 'CURRENT_TIMESTAMP');
+
+    // B. OUTPUT inserted.* / OUTPUT inserted.col -> RETURNING * / RETURNING col
+    translatedSql = translatedSql.replace(/OUTPUT\s+inserted\.(\*|[a-zA-Z0-9_, ]+)/gi, 'RETURNING $1');
+
+    // C. OFFSET/FETCH NEXT -> LIMIT/OFFSET
+    translatedSql = translatedSql.replace(/OFFSET\s+@([a-zA-Z0-9_]+)\s+ROWS\s+FETCH\s+NEXT\s+@([a-zA-Z0-9_]+)\s+ROWS\s+ONLY/gi, 'LIMIT @$2 OFFSET @$1');
+    translatedSql = translatedSql.replace(/OFFSET\s+(\d+)\s+ROWS\s+FETCH\s+NEXT\s+(\d+)\s+ROWS\s+ONLY/gi, 'LIMIT $2 OFFSET $1');
+
+    // D. Convert SELECT TOP 1 -> LIMIT 1
+    if (/SELECT\s+TOP\s+1\s+/i.test(translatedSql)) {
+      translatedSql = translatedSql.replace(/SELECT\s+TOP\s+1\s+/i, 'SELECT ');
+      if (!/LIMIT\s+1/i.test(translatedSql)) {
+        translatedSql = translatedSql + ' LIMIT 1';
+      }
+    }
+
+    // E. Handle SCOPE_IDENTITY()
+    let hasScopeIdentity = false;
+    if (/SCOPE_IDENTITY/i.test(translatedSql)) {
+      hasScopeIdentity = true;
+      translatedSql = translatedSql.replace(/;\s*SELECT\s+SCOPE_IDENTITY\(\)\s+AS\s+Id;?/gi, '');
+      translatedSql = translatedSql.replace(/SELECT\s+SCOPE_IDENTITY\(\)\s+AS\s+Id;?/gi, '');
+      translatedSql = translatedSql.trim();
+    }
+
+    // -- Parameter binding --
+    const boundValues = [];
+    translatedSql = translatedSql.replace(/@([a-zA-Z0-9_]+)/g, (match, pName) => {
+      const key = Object.keys(this.parameters).find(k => k.toLowerCase() === pName.toLowerCase());
+      if (key !== undefined) {
+        boundValues.push(this.parameters[key]);
+      } else {
+        boundValues.push(null);
+      }
+      return '?';
+    });
+
+    console.log("Executing D1 SQL:", translatedSql, "with params:", boundValues);
+
+    try {
+      const stmt = db.prepare(translatedSql).bind(...boundValues);
+      const response = await stmt.all();
+      const results = response.results || [];
+      const meta = response.meta || {};
+
+      let recordset = results;
+      let rowsAffected = [meta.changes || 0];
+
+      if (hasScopeIdentity && recordset.length === 0) {
+        recordset = [{ Id: meta.last_row_id }];
+      }
+
+      return {
+        recordset,
+        rowsAffected,
+        recordsets: [recordset]
+      };
+    } catch (err) {
+      console.error("D1 Query execution error:", err, "SQL:", translatedSql);
+      throw err;
+    }
+  }
+}
+
+class MockPool {
+  request() {
+    return new MockRequest(this);
+  }
+}
+
+export const sql = new Proxy({
+  Transaction: MockTransaction,
+  Request: MockRequest
+}, {
+  get(target, prop) {
+    if (prop in target) {
+      return target[prop];
+    }
+    return Symbol(prop);
+  }
+});
+
+export const poolPromise = Promise.resolve(new MockPool());
