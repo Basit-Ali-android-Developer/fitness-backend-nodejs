@@ -12,7 +12,7 @@ const signup = async (data) => {
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).required()
-  });
+  }).required();
 
   const { error, value } = schema.validate(data);
 
@@ -114,7 +114,7 @@ const updateProfileSchema = Joi.object({
       "any.required": "gender is required",
       "any.only": "gender must be Male, Female or Other"
     })
-});
+}).required();
 
 const updateProfile = async (user, data) => {
   const { error, value } = updateProfileSchema.validate(data, {

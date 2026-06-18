@@ -2,6 +2,7 @@ import userService from './userService.js';
 import asyncHandler from '../../utils/asyncHandler.js';
 
 const signup = asyncHandler(async (req, res) => {
+  console.log("userController.signup: req.body =", req.body);
   await userService.signup(req.body);
 
   res.status(201).json({
