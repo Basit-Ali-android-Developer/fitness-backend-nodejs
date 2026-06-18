@@ -164,6 +164,5 @@ module.exports = {
   deleteMeal, 
   getTodayMeals, 
   markMealDone, 
-  getMealHistory, 
-  getTodayMeals
+  getMealHistory
 };
