@@ -9,7 +9,7 @@ crons = ["6 17 * * *"]
 [[d1_databases]]
 binding = "DB"
 database_name = "fitness-db"
-database_id = "755e2a29-59bb-49f6-aec5-3276d87c7b04"
+database_id = "19dda683-9120-461e-ad63-62f96e1e1d83"
 migrations_dir = "migrations"
 
 [vars]

@@ -47,8 +47,14 @@ class MockRequest {
     // A. GETDATE() -> CURRENT_TIMESTAMP
     translatedSql = translatedSql.replace(/GETDATE\(\)/gi, 'CURRENT_TIMESTAMP');
 
-    // B. OUTPUT inserted.* / OUTPUT inserted.col -> RETURNING * / RETURNING col
-    translatedSql = translatedSql.replace(/OUTPUT\s+inserted\.(\*|[a-zA-Z0-9_, ]+)/gi, 'RETURNING $1');
+    // B. Handle OUTPUT inserted.* / OUTPUT inserted.col by stripping and appending at the end as RETURNING
+    let hasOutputInserted = false;
+    let returningCols = '';
+    translatedSql = translatedSql.replace(/OUTPUT\s+inserted\.(\*|[a-zA-Z0-9_, ]+)/gi, (match, cols) => {
+      hasOutputInserted = true;
+      returningCols = cols.trim();
+      return '';
+    });
 
     // C. OFFSET/FETCH NEXT -> LIMIT/OFFSET
     translatedSql = translatedSql.replace(/OFFSET\s+@([a-zA-Z0-9_]+)\s+ROWS\s+FETCH\s+NEXT\s+@([a-zA-Z0-9_]+)\s+ROWS\s+ONLY/gi, 'LIMIT @$2 OFFSET @$1');
@@ -82,6 +88,10 @@ class MockRequest {
       }
       return '?';
     });
+
+    if (hasOutputInserted) {
+      translatedSql = translatedSql + ' RETURNING ' + returningCols;
+    }
 
     console.log("Executing D1 SQL:", translatedSql, "with params:", boundValues);
 
