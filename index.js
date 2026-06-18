@@ -1,8 +1,8 @@
 // Load environment variables as early as possible
-require('dotenv').config();
+import 'dotenv/config.js';
 
-const app = require('./app');
-require('./cron/mealCron');
+import app from './app.js';
+import './cron/mealCron.js';
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

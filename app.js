@@ -1,19 +1,19 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const errorMiddleware = require('./middleware/errorMiddleware');
-const requestLogger = require('./middleware/requestLoggerMiddleware');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
+import express from 'express';
+import bodyParser from 'body-parser';
+import errorMiddleware from './middleware/errorMiddleware.js';
+import requestLogger from './middleware/requestLoggerMiddleware.js';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 
-const userRoutes = require('./modules/user/userRoutes');
-const dietRoutes = require('./modules/diet/dietRoutes');
-const mealRoutes = require('./modules/meal/mealRoutes');
-const foodRoutes = require('./modules/food/foodRoutes');
-const summaryRoutes = require('./modules/dashBoard/summaryRoutes');
-const workoutTemplateRoutes = require('./modules/workoutTemplate/workoutTemplateRoutes');
-const workoutPlanRoutes = require('./modules/workoutPlan/workoutPlanRoutes');
-const workoutTrackingRoutes = require('./modules/workoutTracking/workoutTrackingRoutes');
+import userRoutes from './modules/user/userRoutes.js';
+import dietRoutes from './modules/diet/dietRoutes.js';
+import mealRoutes from './modules/meal/mealRoutes.js';
+import foodRoutes from './modules/food/foodRoutes.js';
+import summaryRoutes from './modules/dashBoard/summaryRoutes.js';
+import workoutTemplateRoutes from './modules/workoutTemplate/workoutTemplateRoutes.js';
+import workoutPlanRoutes from './modules/workoutPlan/workoutPlanRoutes.js';
+import workoutTrackingRoutes from './modules/workoutTracking/workoutTrackingRoutes.js';
 
 const app = express();
 
@@ -45,4 +45,4 @@ app.use('/api/workoutTracking', workoutTrackingRoutes);
 
 app.use(errorMiddleware);
 
-module.exports = app;
+export default app;
