@@ -23,7 +23,10 @@ const mealSchema = Joi.object({
 // ==========================
 const createMeal = async (UserId, data) => {
   const { error, value } = mealSchema.validate(data);
-  if (error) throw new AppError(error.details[0].message, 400);
+
+  if (error) {
+    throw new AppError(error.details[0].message, 400);
+  }
 
   const { name, mealTime, foods } = value;
 
@@ -32,32 +35,53 @@ const createMeal = async (UserId, data) => {
   try {
     await transaction.begin();
 
-    //  CHECK DUPLICATES FIRST
-    const nameExists = await mealRepository.checkMealNameExists(transaction, UserId, name);
+    // CHECK DUPLICATE NAME
+    const nameExists =
+      await mealRepository.checkMealNameExists(
+        transaction,
+        UserId,
+        name
+      );
+
     if (nameExists) {
       throw new AppError("Meal name already exists", 409);
     }
 
-    const timeExists = await mealRepository.checkMealTimeExists(transaction, UserId, mealTime);
+    // CHECK DUPLICATE TIME
+    const timeExists =
+      await mealRepository.checkMealTimeExists(
+        transaction,
+        UserId,
+        mealTime
+      );
+
     if (timeExists) {
       throw new AppError("Meal time already exists", 409);
     }
 
-    //  GET FOODS
+    // GET FOODS
     const foodIds = foods.map(f => f.foodId);
-    const dbFoods = await mealRepository.getFoodsByIds(transaction, foodIds);
 
-    if (dbFoods.length !== foods.length)
+    const dbFoods =
+      await mealRepository.getFoodsByIds(
+        transaction,
+        foodIds
+      );
+
+    if (dbFoods.length !== foods.length) {
       throw new AppError("Some foods not found", 400);
+    }
 
-    //  CALCULATE TOTALS
+    // CALCULATE TOTALS
     let totalCalories = 0;
     let totalProtein = 0;
     let totalCarbs = 0;
     let totalFats = 0;
 
     const mealIngredients = foods.map(f => {
-      const food = dbFoods.find(d => d.Id === f.foodId);
+      const food = dbFoods.find(
+        d => d.Id === f.foodId
+      );
 
       const item = {
         foodId: food.Id,
@@ -78,42 +102,52 @@ const createMeal = async (UserId, data) => {
       return item;
     });
 
-    //  CREATE MEAL
-    const meal = await mealRepository.createMeal(transaction, {
-      userId: UserId,
-      name,
-      mealTime,
-      totalCalories,
-      totalProtein,
-      totalCarbs,
-      totalFats
-    });
+    // CREATE MEAL
+    const meal =
+      await mealRepository.createMeal(
+        transaction,
+        {
+          userId: UserId,
+          name,
+          mealTime,
+          totalCalories,
+          totalProtein,
+          totalCarbs,
+          totalFats
+        }
+      );
 
-    //  INGREDIENTS
+    // INSERT MEAL INGREDIENTS
     await mealRepository.insertMealIngredients(
       transaction,
       meal.Id,
       mealIngredients
     );
 
-    //  TRACKING
-    const tracking = await mealRepository.createMealTracking(transaction, {
-      userId: UserId,
-      mealId: meal.Id,
-      name,
-      mealTime,
-      totalCalories,
-      totalProtein,
-      totalCarbs,
-      totalFats
-    });
+    // CREATE TRACKING
+    const tracking =
+      await mealRepository.createMealTracking(
+        transaction,
+        {
+          userId: UserId,
+          mealId: meal.Id,
+          name,
+          mealTime,
+          totalCalories,
+          totalProtein,
+          totalCarbs,
+          totalFats
+        }
+      );
 
+    // INSERT TRACKING INGREDIENTS
     await mealRepository.insertTrackingIngredients(
       transaction,
       tracking.Id,
       mealIngredients
     );
 
+    // EVERYTHING SUCCESSFUL
     await transaction.commit();
 
     return {
@@ -130,15 +164,33 @@ const createMeal = async (UserId, data) => {
     };
 
   } catch (err) {
-    await transaction.rollback();
 
-    if (err.number === 2627 || err.number === 2601) {
-      throw new AppError("Meal name or time already exists", 409);
+    // ANY ERROR → ROLLBACK EVERYTHING
+    try {
+      await transaction.rollback();
+    } catch (rollbackError) {
+      console.error(
+        "Transaction rollback failed:",
+        rollbackError
+      );
+    }
+
+    // DUPLICATE ERROR
+    if (
+      err.number === 2627 ||
+      err.number === 2601
+    ) {
+      throw new AppError(
+        "Meal name or time already exists",
+        409
+      );
     }
 
     throw err;
   }
 };
+
+
 
 // ==========================
 // GET ALL MEALS
